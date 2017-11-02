@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:project_fall_app"
+             xmlns:localcircle="clr-namespace:ButtonCircle.FormsPlugin.Abstractions;assembly=ButtonCircle.FormsPlugin.Abstractions"
+             x:Class="project_fall_app.MainPage"
+              >
+    <ContentPage.Content>
+        <Grid>
+            <localcircle:CircleButton HeightRequest="200" WidthRequest="200" BorderThickness="5" VerticalOptions="Center" BackgroundColor="Gold" Image="testimg.png"></localcircle:CircleButton>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>
