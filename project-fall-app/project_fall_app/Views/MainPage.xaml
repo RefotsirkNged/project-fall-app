@@ -2,12 +2,30 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:project_fall_app"
-             xmlns:localcircle="clr-namespace:ButtonCircle.FormsPlugin.Abstractions;assembly=ButtonCircle.FormsPlugin.Abstractions"
+             xmlns:viewmodels="clr-namespace:project_fall_app.ViewModels"
+             xmlns:bc="clr-namespace:ButtonCircle.FormsPlugin.Abstractions;assembly=ButtonCircle.FormsPlugin.Abstractions"
+             xmlns:controls="clr-namespace:XLabs.Forms.Controls;assembly=XLabs.Forms"
              x:Class="project_fall_app.MainPage"
+             BackgroundColor="{StaticResource AppBackgroundColor}"
               >
-    <ContentPage.Content>
-        <Grid>
-            <localcircle:CircleButton HeightRequest="200" WidthRequest="200" BorderThickness="5" VerticalOptions="Center" BackgroundColor="Gold" Image="testimg.png"></localcircle:CircleButton>
-        </Grid>
-    </ContentPage.Content>
+    <ContentPage.BindingContext>
+        <viewmodels:MainPageViewModel></viewmodels:MainPageViewModel>
+    </ContentPage.BindingContext>
+
+    <StackLayout>
+        <StackLayout x:Name="TopBar" Orientation="Horizontal" HeightRequest="{Binding TopBarHeight}" BackgroundColor="{StaticResource TopBarColor}">
+            <Label Text="{Binding Title}" WidthRequest="{Binding TopBarLabelWidth}" Margin="10,0,0,0" VerticalOptions="Center" FontSize="22"  TextColor="{StaticResource TextColor}">
+            </Label>
+            <Image Source="ic_info_outline_black_24dp.png" VerticalOptions="Center" HeightRequest="50" BackgroundColor="Transparent" >
+                <Image.GestureRecognizers>
+                    <TapGestureRecognizer
+                        Command="{Binding InfoButtonCommand}"></TapGestureRecognizer>
+                </Image.GestureRecognizers>
+            </Image>
+        </StackLayout>
+
+            <ContentView Content="{Binding PageContent}" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+            </ContentView>
+        </StackLayout>
+    
 </ContentPage>

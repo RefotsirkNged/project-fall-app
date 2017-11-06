@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 
 using Xamarin.Forms;
+using XLabs.Ioc;
+using XLabs.Platform.Device;
 
 namespace project_fall_app
 {
@@ -19,6 +21,7 @@ namespace project_fall_app
 		protected override void OnStart ()
 		{
 			// Handle when your app starts
+
 		}
 
 		protected override void OnSleep ()

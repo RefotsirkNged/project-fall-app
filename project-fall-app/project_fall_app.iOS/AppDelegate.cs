@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ButtonCircle.FormsPlugin.iOS;
 using Foundation;
 using UIKit;
+using Xamarin.Forms;
+using XLabs.Forms;
+using XLabs.Ioc;
+using XLabs.Platform.Device;
+using XLabs.Platform.Services;
 
 namespace project_fall_app.iOS
 {
@@ -11,7 +16,7 @@ namespace project_fall_app.iOS
 	// User Interface of the application, as well as listening (and optionally responding) to 
 	// application events from iOS.
 	[Register("AppDelegate")]
-	public partial class AppDelegate : global::Xamarin.Forms.Platform.iOS.FormsApplicationDelegate
+	public partial class AppDelegate : XFormsApplicationDelegate //global::Xamarin.Forms.Platform.iOS.FormsApplicationDelegate
 	{
 		//
 		// This method is invoked when the application has loaded and is ready to run. In this 
@@ -23,9 +28,16 @@ namespace project_fall_app.iOS
 		public override bool FinishedLaunching(UIApplication app, NSDictionary options)
 		{
 			global::Xamarin.Forms.Forms.Init ();
-			LoadApplication (new project_fall_app.App ());
+            ButtonCircleRenderer.Init();
+		    var container = new SimpleContainer();
+		    container.Register<IDevice>(t => AppleDevice.CurrentDevice);
+		    container.Register<IDisplay>(t => t.Resolve<IDevice>().Display);
+		    container.Register<INetwork>(t => t.Resolve<IDevice>().Network);
+		    container.Register<IMessagingCenter>(t => MessagingCenter.Instance);
+            Resolver.SetResolver(container.GetResolver());
+            LoadApplication (new project_fall_app.App ());
 
-			return base.FinishedLaunching (app, options);
+            return base.FinishedLaunching (app, options);
 		}
 	}
 }

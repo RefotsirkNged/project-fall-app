@@ -1,10 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Application xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:bc="clr-namespace:ButtonCircle.FormsPlugin.Abstractions;assembly=ButtonCircle.FormsPlugin.Abstractions"
              x:Class="project_fall_app.App">
-	<Application.Resources>
-
-		<!-- Application resource dictionary -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <Color x:Key="AppBackgroundColor">LightGray</Color>
+            <Color x:Key="OutlineColor">Black</Color>
+            <Color x:Key="TextColor">Black</Color>
+            <Color x:Key="TopBarColor">DarkSlateBlue</Color>
+            <Color x:Key="ButtonBorderColor">Black</Color>
+            <Style x:Key="BigRoundButtonStyle" TargetType="bc:CircleButton">
+                <Setter Property="WidthRequest" Value="150"/>
+                <Setter Property="HeightRequest" Value="150"/>
+                <Setter Property="BackgroundColor" Value="{StaticResource AppBackgroundColor}"/>
+                <Setter Property="TextColor" Value="{StaticResource TextColor}"/>
+                <Setter Property="BorderThickness" Value="5"/>
+                <Setter Property="BorderColor" Value="Black"/>
+            </Style>
+        </ResourceDictionary>
+        <!-- Application resource dictionary -->
     <!-- We can create general colour themes in here-->
 
 	</Application.Resources>

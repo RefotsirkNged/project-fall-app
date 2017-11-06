@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:project_fall_app.ViewModels;assembly=project_fall_app.Android"
+             x:Class="project_fall_app.Views.WaitingToHelpView">
+    <ContentView.BindingContext>
+        <viewModels:WaitingToHelpViewModel></viewModels:WaitingToHelpViewModel>
+    </ContentView.BindingContext>
+    <ContentView.Content>
+        <StackLayout>
+            <ListView ItemsSource="{Binding CitizenList}" Margin="10,10,10,10" BackgroundColor="Transparent" IsEnabled="False">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <Label Text="{Binding }" TextColor="Black"></Label>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackLayout>
+    </ContentView.Content>
+</ContentView>

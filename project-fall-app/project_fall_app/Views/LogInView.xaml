@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:project_fall_app.ViewModels;assembly=project_fall_app.Android"
+             x:Class="project_fall_app.Views.LogInView"
+             >
+    <ContentView.BindingContext>
+        <viewModels:LogInViewModel/>
+    </ContentView.BindingContext>
+    
+  <ContentView.Content>
+      <StackLayout>
+            <Entry Margin="10,100,10,10" Text="{Binding UsernameText}" Placeholder="Brugernavn">
+                
+            </Entry>
+            <Entry Margin="10,0,10,10"  Text="{Binding PasswordText}" Placeholder="Kodeord" IsPassword="True">
+            </Entry>
+          <Button Text="Log på" WidthRequest="150" HorizontalOptions="CenterAndExpand" Command="{Binding LogOnCommand}"></Button>
+      </StackLayout>
+  </ContentView.Content>
+</ContentView>

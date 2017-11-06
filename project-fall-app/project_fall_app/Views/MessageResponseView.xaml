@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:bc="clr-namespace:ButtonCircle.FormsPlugin.Abstractions;assembly=ButtonCircle.FormsPlugin.Abstractions"
+             xmlns:viewModels="clr-namespace:project_fall_app.ViewModels;assembly=project_fall_app.Android"
+             x:Class="project_fall_app.Views.MessageResponseView">
+    <ContentView.BindingContext>
+        <viewModels:MessageResponseViewModel></viewModels:MessageResponseViewModel>
+    </ContentView.BindingContext>
+    <ContentView.Content>
+        <StackLayout>
+           <bc:CircleButton Text="Ja" Style="{StaticResource BigRoundButtonStyle}" Command="{Binding CanHelpCommand}"></bc:CircleButton>
+           <bc:CircleButton Text="Nej" Style="{StaticResource BigRoundButtonStyle}" Command="{Binding CannotHelpCommand}"></bc:CircleButton>
+        </StackLayout>
+    </ContentView.Content>
+</ContentView>
