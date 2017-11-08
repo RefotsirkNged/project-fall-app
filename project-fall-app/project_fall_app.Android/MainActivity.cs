@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.Runtime;
 using Android.Views;
@@ -12,6 +13,8 @@ using XLabs.Forms;
 using XLabs.Ioc;
 using XLabs.Platform.Device;
 using XLabs.Platform.Services;
+using Android.Gms.Common;
+using Android.Util;
 
 namespace project_fall_app.Droid
 {
@@ -35,7 +38,37 @@ namespace project_fall_app.Droid
             LoadApplication (new project_fall_app.App ());
             this.Window.AddFlags(WindowManagerFlags.Fullscreen);
 
+
+		    if (IsPlayServicesAvailable())
+		    {
+		        var intent = new Intent(this, typeof(RegistrationIntentService));
+		        StartService(intent);
+		    }
+            
+
+
 		}
-	}
+
+	    public bool IsPlayServicesAvailable()
+	    {
+	        int resultCode = GoogleApiAvailability.Instance.IsGooglePlayServicesAvailable(this);
+	        if (resultCode != ConnectionResult.Success)
+	        {
+	            if (GoogleApiAvailability.Instance.IsUserResolvableError(resultCode))
+	                Toast.MakeText(ApplicationContext, GoogleApiAvailability.Instance.GetErrorString(resultCode), ToastLength.Long).Show();
+	            else
+	            {
+	                Toast.MakeText(ApplicationContext, "Sorry, this device is not supported", ToastLength.Long).Show();
+	                Finish();
+	            }
+	            return false;
+	        }
+	        else
+	        {
+	            Toast.MakeText(ApplicationContext, "Device connection OK", ToastLength.Long).Show();
+	            return true;
+	        }
+	    }
+    }
 }
 
