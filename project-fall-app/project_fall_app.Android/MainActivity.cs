@@ -15,12 +15,16 @@ using XLabs.Platform.Device;
 using XLabs.Platform.Services;
 using Android.Gms.Common;
 using Android.Util;
+using Firebase;
+using Plugin.FirebasePushNotification;
 
 namespace project_fall_app.Droid
 {
 	[Activity (Label = "project_fall_app", Icon = "@drawable/icon", Theme="@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
 	public class MainActivity : XFormsApplicationDroid //, global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
 	{
+
+
 		protected override void OnCreate (Bundle bundle)
 		{
 
@@ -36,14 +40,33 @@ namespace project_fall_app.Droid
 		    container.Register<IMessagingCenter>(t => MessagingCenter.Instance);
             Resolver.SetResolver(container.GetResolver());
             LoadApplication (new project_fall_app.App ());
+#if DEBUG
+		    FirebasePushNotificationManager.Initialize(this, true);
+#else
+                FirebasePushNotificationManager.Initialize(this, false);
+#endif
+            FirebasePushNotificationManager.ProcessIntent(Intent);
             this.Window.AddFlags(WindowManagerFlags.Fullscreen);
 
 
 		    if (IsPlayServicesAvailable())
 		    {
-		        var intent = new Intent(this, typeof(RegistrationIntentService));
-		        StartService(intent);
-		    }
+		        FirebasePushNotificationManager.IconResource = Resources.GetIdentifier("ic_info_outline_black_24dp", "drawable", PackageName);
+
+                CrossFirebasePushNotification.Current.OnTokenRefresh += (s, p) =>
+                {
+              //      ClipboardManager clipboard = (ClipboardManager)GetSystemService(Context.ClipboardService);
+		            //ClipData clip = ClipData.NewPlainText("1234", p.Token);
+		            //clipboard.PrimaryClip = clip;
+                    System.Diagnostics.Debug.WriteLine($"TOKEN: {p.Token}");
+		        };
+
+		        CrossFirebasePushNotification.Current.OnNotificationReceived += (s, p) =>
+		        {
+                    System.Diagnostics.Debug.WriteLine("recieved" + p.Data);
+		        };
+
+            }
             
 
 

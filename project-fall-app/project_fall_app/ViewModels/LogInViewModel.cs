@@ -13,9 +13,10 @@ namespace project_fall_app.ViewModels
         public LogInViewModel()
         {
             mscntr = Resolver.Resolve<IMessagingCenter>();
+            string[] values = new[] {UsernameText, PasswordText};
             LogOnCommand = new Command(() =>
             {
-                mscntr.Send(this, "performLogin");
+                mscntr.Send(this, "performLogin",values);
             });
         }
 

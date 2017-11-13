@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
+using Android.Content;
 using project_fall_app.Views;
+using Plugin.FirebasePushNotification;
 using Xamarin.Forms;
 using XLabs.Ioc;
 using XLabs.Platform.Device;
+using View = Xamarin.Forms.View;
 
 namespace project_fall_app.ViewModels
 {
