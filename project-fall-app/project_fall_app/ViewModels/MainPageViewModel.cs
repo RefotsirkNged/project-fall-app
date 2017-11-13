@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
+using Android.App;
 using Android.Content;
+using project_fall_app.Droid;
+using project_fall_app.Models;
 using project_fall_app.Views;
 using Plugin.FirebasePushNotification;
 using Xamarin.Forms;
@@ -14,36 +17,61 @@ namespace project_fall_app.ViewModels
 {
     class MainPageViewModel : BaseViewModel
     {
+        #region Fields
+
+        private int topBarHeight;
+        private View pageContent;
+        private int topBarLabelWidth;
+        private string token;
+
+        private User currentUser; //store here, we can always access this if we need the user after the initial login has been done
+
         private IDevice device;
         private IMessagingCenter mscntr;
 
+        #endregion
+
         public MainPageViewModel()
         {
-            PageContent = new LogInView();
-            Title = "Skal du bruge hjælp?";
-            TopBarHeight = 50;
+            token = string.Empty;
             device = Resolver.Resolve<IDevice>();
             mscntr = Resolver.Resolve<IMessagingCenter>();
-            TopBarLabelWidth = (int)(device.Display.Width * 0.9f);
-            InitMessages();
 
+            PageContent = new LogInView(); //Startup screen, dont change pls, containted within the mainpage thingy
+            Title = "Falddetektions-app";
+            TopBarHeight = 50;
+            TopBarLabelWidth = (int) (device.Display.Width * 0.9f);
+
+            InitMessages();
+            if (!CheckServerConnection())
+            {
+                //TODO: maybe add some kind of popup to handle this?
+            }
         }
+
+
+        private bool CheckServerConnection()
+        {
+            //TODO:perform a check of whether or not the server is available
+            return true;
+        }
+
 
         #region MessageCenter
 
         private void InitMessages()
         {
-
             //Subscriptions
-            MessagingCenter.Subscribe<LogInViewModel>(this, "performLogin", (sender)=>
+            MessagingCenter.Subscribe<LogInViewModel, User>(this, "performLogin", (sender, userobj) =>
             {
                 //TODO implement proper login
+                currentUser = userobj;
                 shiftHelp();
             });
 
             MessagingCenter.Subscribe<HelpViewModel>(this, "callForHelp", (sender) =>
             {
-                shiftFallResponse();
+                shiftFallResponse(); 
             });
 
 
@@ -53,28 +81,30 @@ namespace project_fall_app.ViewModels
                 shiftHelp();
             });
 
-            MessagingCenter.Subscribe<FallResponseViewModel>(this, "callForHelpAborted", (sender)=>
-            {
-               
-                shiftHelp();
-            });
+            MessagingCenter.Subscribe<FallResponseViewModel>(this, "callForHelpAborted", (sender) => { shiftHelp(); });
 
             MessagingCenter.Subscribe<MessageResponseViewModel>(this, "canHelp", (sender) =>
             {
-                //tell the server that device id XXXXXXXXXX can help
-
+                //TODO: implement telling the server that user id XXXX can help
             });
 
-            MessagingCenter.Subscribe<MessageResponseViewModel>(this, "helpRequested", (sender) =>
+            MessagingCenter.Subscribe<MessageResponseViewModel>(this, "helpRequested",
+                (sender) => { shiftMessageResponse(); });
+
+            MessagingCenter.Subscribe<MainActivity, string>(this, "tokenRefreshed", (sender, value) =>
             {
-                shiftMessageResponse();
+                if (value != null)
+                {
+                    Token = value;
+                }
             });
-
 
             //send messages
             InfoButtonCommand = new Command(() =>
             {
-                mscntr.Send<MainPageViewModel>(this, "showInfoAlert");
+                var clpman = (ClipboardManager) Forms.Context.GetSystemService(Context.ClipboardService);
+
+                mscntr.Send<MainPageViewModel, string>(this, "showInfoAlert", Token);
             });
         }
 
@@ -88,16 +118,19 @@ namespace project_fall_app.ViewModels
             Title = "Skal du bruge hjælp?";
             PageContent = new FallResponseView();
         }
+
         private void shiftLogIn()
         {
             Title = "Log på";
             PageContent = new LogInView();
         }
+
         private void shiftMessageResponse()
         {
             Title = "Kan du hjælpe?";
             PageContent = new MessageResponseView();
         }
+
         private void shiftHelp()
         {
             Title = "Skal du bruge hjælp?";
@@ -112,19 +145,9 @@ namespace project_fall_app.ViewModels
 
         #endregion
 
-        public ICommand InfoButtonCommand { protected set; get; }
 
+        #region gettersetter/commands
 
-        #region Fields
-        private int topBarHeight;
-        private View pageContent;
-        private int topBarLabelWidth;
-
-
-        #endregion
-
-
-        #region gettersetter
         public View PageContent
         {
             get { return pageContent; }
@@ -143,10 +166,14 @@ namespace project_fall_app.ViewModels
             set { SetProperty(ref topBarLabelWidth, value); }
         }
 
+        public string Token
+        {
+            get { return token; }
+            set { SetProperty(ref token, value); }
+        }
+
+        public ICommand InfoButtonCommand { protected set; get; }
+
         #endregion
-
-
-
-
     }
 }

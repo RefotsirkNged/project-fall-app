@@ -40,13 +40,19 @@ namespace project_fall_app.Droid
 		    container.Register<IMessagingCenter>(t => MessagingCenter.Instance);
             Resolver.SetResolver(container.GetResolver());
             LoadApplication (new project_fall_app.App ());
-#if DEBUG
-		    FirebasePushNotificationManager.Initialize(this, true);
-#else
+		    this.Window.AddFlags(WindowManagerFlags.Fullscreen);
+
+
+
+            //Notification initialization and debugging stuff
+
+            #if DEBUG
+            FirebasePushNotificationManager.Initialize(this, true);
+            #else
                 FirebasePushNotificationManager.Initialize(this, false);
-#endif
+            #endif
             FirebasePushNotificationManager.ProcessIntent(Intent);
-            this.Window.AddFlags(WindowManagerFlags.Fullscreen);
+
 
 
 		    if (IsPlayServicesAvailable())
@@ -55,9 +61,8 @@ namespace project_fall_app.Droid
 
                 CrossFirebasePushNotification.Current.OnTokenRefresh += (s, p) =>
                 {
-              //      ClipboardManager clipboard = (ClipboardManager)GetSystemService(Context.ClipboardService);
-		            //ClipData clip = ClipData.NewPlainText("1234", p.Token);
-		            //clipboard.PrimaryClip = clip;
+                    IMessagingCenter mscntr = Resolver.Resolve<IMessagingCenter>();
+                    mscntr.Send(this, "tokenRefreshed", p.Token);
                     System.Diagnostics.Debug.WriteLine($"TOKEN: {p.Token}");
 		        };
 

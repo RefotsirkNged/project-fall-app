@@ -2,22 +2,50 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
+using Android.Content;
+using Android.Widget;
+using project_fall_app.Models;
 using Xamarin.Forms;
 using XLabs.Ioc;
+using XLabs.Platform.Device;
 
 namespace project_fall_app.ViewModels
 {
     class LogInViewModel : BaseViewModel
     {
         private IMessagingCenter mscntr;
+        private IDevice dvce;
         public LogInViewModel()
         {
             mscntr = Resolver.Resolve<IMessagingCenter>();
-            string[] values = new[] {UsernameText, PasswordText};
+            dvce = Resolver.Resolve<IDevice>();
+            User testUser = new User();
+            testUser.ID = "1234";
+            testUser.Name = "Gerda Gertsen";
+            testUser.Type = Enum.GetName(typeof(User.UserTypes), User.UserTypes.CitizenAssistant);
             LogOnCommand = new Command(() =>
             {
-                mscntr.Send(this, "performLogin",values);
+                bool loginSuccessful = PerformLogin();
+                if (loginSuccessful)
+                {
+                    mscntr.Send(this, "performLogin", testUser);
+                }
+                else
+                {
+                    if (Device.RuntimePlatform == Device.Android)
+                    {
+                        //TODO: if we can get the context somehow, then we can make platform specific stuff like this
+                    }
+                }
+
             });
+        }
+
+
+        private bool PerformLogin()
+        {
+            //TODO: put some code calling the right stuff
+            return true;
         }
 
 

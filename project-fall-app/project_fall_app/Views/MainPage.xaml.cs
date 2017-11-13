@@ -15,9 +15,9 @@ namespace project_fall_app
 			InitializeComponent();
 
             //noooo pattern breaking pls no
-            MessagingCenter.Subscribe<MainPageViewModel>(this, "showInfoAlert", (sender) =>
+            MessagingCenter.Subscribe<MainPageViewModel, string>(this, "showInfoAlert", (sender, value) =>
             {
-                DisplayAlert("App information", "insert information", "OK");
+                DisplayAlert("App information", value, "OK");
             });
 		}
 
