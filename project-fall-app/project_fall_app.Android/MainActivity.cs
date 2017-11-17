@@ -42,7 +42,8 @@ namespace project_fall_app.Droid
             LoadApplication (new project_fall_app.App ());
 		    this.Window.AddFlags(WindowManagerFlags.Fullscreen);
 
-
+		    Intent intent = new Intent(this, typeof(FallService));
+		    //StartService(intent);
 
             //Notification initialization and debugging stuff
 

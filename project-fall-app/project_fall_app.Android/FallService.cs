@@ -13,6 +13,7 @@ using Android.Widget;
 
 namespace project_fall_app.Droid
 {
+    [Service]
     class FallService : Service, ISensorEventListener
     {
         private SensorManager sensman;
@@ -24,6 +25,9 @@ namespace project_fall_app.Droid
 
         public override void OnCreate()
         {
+            sensman = (SensorManager)GetSystemService(Context.SensorService);
+            sens = sensman.GetDefaultSensor(SensorType.Accelerometer);
+            sensman.RegisterListener(this, sens, SensorDelay.Normal);
             System.Diagnostics.Debug.WriteLine("Service created");
         }
 
@@ -34,6 +38,7 @@ namespace project_fall_app.Droid
 
         public void OnSensorChanged(SensorEvent e)
         {
+            System.Diagnostics.Debug.WriteLine("sensor changed X: " + e.Values.First());
             //handle sensor input if we decide to implement this
         }
     }
