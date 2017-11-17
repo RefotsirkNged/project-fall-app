@@ -38,7 +38,10 @@ namespace project_fall_app.Droid
 		    container.Register<IDisplay>(t => t.Resolve<IDevice>().Display);
 		    container.Register<INetwork>(t => t.Resolve<IDevice>().Network);
 		    container.Register<IMessagingCenter>(t => MessagingCenter.Instance);
-            Resolver.SetResolver(container.GetResolver());
+		    if (!Resolver.IsSet)
+		    {
+		        Resolver.SetResolver(container.GetResolver());
+            }
             LoadApplication (new project_fall_app.App ());
 		    this.Window.AddFlags(WindowManagerFlags.Fullscreen);
 

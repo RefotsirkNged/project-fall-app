@@ -22,26 +22,24 @@ namespace project_fall_app.ViewModels
         private IMessagingCenter mscntr;
         private IDevice dvce;
         private INetwork ntwrk;
+        private User currentUser;
+
         public LogInViewModel()
         {
             mscntr = Resolver.Resolve<IMessagingCenter>();
             dvce = Resolver.Resolve<IDevice>();
             ntwrk = Resolver.Resolve<INetwork>();
-            User testUser = new User();
-            testUser.ID = "1234";
-            testUser.Type = Enum.GetName(typeof(User.UserTypes), User.UserTypes.CitizenAssistant);
             LogOnCommand = new Command(() =>
             {
                 bool loginSuccessful = PerformLogin();
                 if (loginSuccessful)
                 {
-                    mscntr.Send(this, "performLogin", testUser);
+                    mscntr.Send(this, "performLogin", currentUser);
                 }
                 else
                 {
                     //alertbuilder popup showing unsuccessfull
                 }
-
             });
         }
 
@@ -50,44 +48,42 @@ namespace project_fall_app.ViewModels
         {
             string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/user";
             string responsetext;
-            dynamic responseObject;
+            JSONObject jobj;
+            ResponseObject responseObject;
             try
             {
                 //TODO: put some code calling the right stuff
                 //if (ntwrk.IsReachable(url, new TimeSpan(0, 0, 30)).Result)
-               // {
-                    HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
-                    request.Method = "GET";
-                    request.Headers.Add("email", UsernameText);
-                    request.Headers.Add("password", PasswordText);
+                // {
+                HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create(url);
+                request.Method = "GET";
+                request.Headers.Add("email", UsernameText);
+                request.Headers.Add("password", PasswordText);
 
-                    using (var response = request.GetResponse())
-                    {
-                        using (var reader = new StreamReader(response.GetResponseStream()))
-                        {
-                            responseObject = JsonConvert.DeserializeObject(reader.ReadToEnd());
-                        }
-                    }
-
-                if (responseObject.id != -1)
+                using (var response = request.GetResponse())
                 {
-                    
+                    using (var reader = new StreamReader(response.GetResponseStream()))
+                    {
+                        responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
+                    }
                 }
-                    return true;
-                //}
 
-
-
-
-
+                if (responseObject.body.id != "-1")
+                {
+                    currentUser = new User();
+                    currentUser.ID = responseObject.body.id;
+                    currentUser.Name = responseObject.body.name;
+                    currentUser.Type = (User.UserTypes)Enum.Parse(typeof(User.UserTypes), responseObject.body.role);
+                }
+                return true;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 throw;
             }
-           
-           
+
+
             return false;
         }
 

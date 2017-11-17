@@ -18,7 +18,7 @@ namespace project_fall_app.Models
         #region fields
         private string id;
         private string name;
-        private string type;
+        private UserTypes type;
         #endregion
         #region gettersetter
         public string ID
@@ -33,7 +33,7 @@ namespace project_fall_app.Models
             set { SetProperty(ref name, value); }
         }
 
-        public string Type
+        public UserTypes Type
         {
             get { return type; }
             set { SetProperty(ref type, value); }
