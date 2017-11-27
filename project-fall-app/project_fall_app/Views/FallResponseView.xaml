@@ -10,8 +10,8 @@
     <ContentView.Resources></ContentView.Resources>
     <ContentView.Content>
         <StackLayout VerticalOptions="Center">
-            <bc:CircleButton Style="{StaticResource BigRoundButtonStyle}" Text="Ja" Command="{Binding ConfirmCallForHelpCommand}" ></bc:CircleButton>
-            <bc:CircleButton Style="{StaticResource BigRoundButtonStyle}" Text="Nej" Command="{Binding AbortCallForHelpCommand}" ></bc:CircleButton>
+            <bc:CircleButton Style="{StaticResource BigRoundButtonStyle}" AutomationId="YesHelp" Text="Ja" Command="{Binding ConfirmCallForHelpCommand}" ></bc:CircleButton>
+            <bc:CircleButton Style="{StaticResource BigRoundButtonStyle}" AutomationId="NoHelp" Text="Nej" Command="{Binding AbortCallForHelpCommand}" ></bc:CircleButton>
         </StackLayout>
     </ContentView.Content>
 </ContentView>

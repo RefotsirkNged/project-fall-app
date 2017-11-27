@@ -50,11 +50,9 @@ namespace project_fall_app.Droid
 
             //Notification initialization and debugging stuff
 
-            #if DEBUG
             FirebasePushNotificationManager.Initialize(this, true);
-            #else
-                FirebasePushNotificationManager.Initialize(this, false);
-            #endif
+
+                //FirebasePushNotificationManager.Initialize(this, false);
             FirebasePushNotificationManager.ProcessIntent(Intent);
 
 

@@ -10,12 +10,12 @@
     
   <ContentView.Content>
       <StackLayout>
-            <Entry Margin="10,100,10,10" Text="{Binding UsernameText}" Placeholder="Brugernavn">
+            <Entry Margin="10,100,10,10" AutomationId="UserName" Text="{Binding UsernameText}" Placeholder="Brugernavn">
                 
             </Entry>
-            <Entry Margin="10,0,10,10"  Text="{Binding PasswordText}" Placeholder="Kodeord" IsPassword="True">
+            <Entry Margin="10,0,10,10" AutomationId="Password"  Text="{Binding PasswordText}" Placeholder="Kodeord" IsPassword="True">
             </Entry>
-          <Button Text="Log på" WidthRequest="150" HorizontalOptions="CenterAndExpand" Command="{Binding LogOnCommand}"></Button>
+          <Button Text="Log på" AutomationId="LogInButton" WidthRequest="150" HorizontalOptions="CenterAndExpand" Command="{Binding LogOnCommand}"></Button>
       </StackLayout>
   </ContentView.Content>
 </ContentView>

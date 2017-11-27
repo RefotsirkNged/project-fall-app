@@ -5,6 +5,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Input;
+using Android.App;
 using Android.Content;
 using Android.Widget;
 using Newtonsoft.Json;
@@ -38,7 +39,8 @@ namespace project_fall_app.ViewModels
                 }
                 else
                 {
-                    //alertbuilder popup showing unsuccessfull
+                    Page page = new Page();
+                    page.DisplayAlert("Login Error", "Forkert password eller bruger navn", "okay").Start();
                 }
             });
         }
@@ -74,6 +76,10 @@ namespace project_fall_app.ViewModels
                     currentUser.ID = responseObject.body.id;
                     currentUser.Name = responseObject.body.name;
                     currentUser.Type = (User.UserTypes)Enum.Parse(typeof(User.UserTypes), responseObject.body.role);
+                }
+                else
+                {
+                    return false;
                 }
                 return true;
             }

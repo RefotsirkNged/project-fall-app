@@ -10,7 +10,7 @@
     </ContentView.BindingContext>
     <ContentView.Content>
         <StackLayout>
-            <bc:CircleButton  Style="{StaticResource BigRoundButtonStyle}"  Text="HJÆLP"
+            <bc:CircleButton  Style="{StaticResource BigRoundButtonStyle}" AutomationId="helpButton" Text="HJÆLP"
                 VerticalOptions="CenterAndExpand"
                 HorizontalOptions="CenterAndExpand" Command="{Binding CallForHelpCommand}">
             </bc:CircleButton>

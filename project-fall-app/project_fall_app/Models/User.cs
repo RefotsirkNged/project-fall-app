@@ -11,9 +11,9 @@ namespace project_fall_app.Models
     {
         public enum UserTypes
         {
-            Cititzen,
-            CitizenAssistant,
-            CitizenAdmin
+            citizen,
+            contact,
+            citizenAdmin
         }
         #region fields
         private string id;
