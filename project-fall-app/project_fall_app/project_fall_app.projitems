@@ -12,7 +12,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Models\IWriteToScreen.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InterFace\IWriteToScreen.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InterFace\IMakeCall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ResponseObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\User.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\BaseViewModel.cs" />

@@ -197,6 +197,7 @@
     <Compile Include="MyCountDownTimer.cs" />
     <Compile Include="FallService.cs" />
     <Compile Include="MainActivity.cs" />
+    <Compile Include="PhoneCallDroid.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
