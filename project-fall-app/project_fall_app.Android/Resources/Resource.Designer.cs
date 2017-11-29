@@ -26,6 +26,8 @@ namespace project_fall_app.Droid
 		
 		public static void UpdateIdValues()
 		{
+			global::PCLStorage.Resource.String.ApplicationName = global::project_fall_app.Droid.Resource.String.ApplicationName;
+			global::PCLStorage.Resource.String.Hello = global::project_fall_app.Droid.Resource.String.Hello;
 			global::Xamarin.Forms.Platform.Android.Resource.Attribute.actionBarSize = global::project_fall_app.Droid.Resource.Attribute.actionBarSize;
 			global::XLabs.Forms.Resource.Animation.abc_fade_in = global::project_fall_app.Droid.Resource.Animation.abc_fade_in;
 			global::XLabs.Forms.Resource.Animation.abc_fade_out = global::project_fall_app.Droid.Resource.Animation.abc_fade_out;

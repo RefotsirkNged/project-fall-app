@@ -12,6 +12,10 @@ using Xamarin.Forms;
 using XLabs.Ioc;
 using XLabs.Platform.Device;
 using View = Xamarin.Forms.View;
+#if __ANDROID__
+    using Android.Content;
+    using Android.Preferences;
+#endif
 
 namespace project_fall_app.ViewModels
 {
@@ -37,16 +41,45 @@ namespace project_fall_app.ViewModels
             device = Resolver.Resolve<IDevice>();
             mscntr = Resolver.Resolve<IMessagingCenter>();
 
-            PageContent = new LogInView(); //Startup screen, dont change pls, containted within the mainpage thingy
+            InitMessages();
+            if (IsUserLoggedIn())
+            {
+                mscntr.Send(this, "performLogin", currentUser);
+            }
+            else
+            {
+                PageContent = new LogInView(); //Startup screen, dont change pls, containted within the mainpage thingy
+            }
+
             Title = "Falddetektions-app";
             TopBarHeight = 50;
             TopBarLabelWidth = (int) (device.Display.Width * 0.9f);
 
-            InitMessages();
             if (!CheckServerConnection())
             {
                 //TODO: maybe add some kind of popup to handle this?
             }
+        }
+        private bool IsUserLoggedIn()
+        {
+            #if __ANDROID__
+            ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(Xamarin.Forms.Forms.Context);
+            ISharedPreferencesEditor edit = prefs.Edit();
+            edit.PutBoolean("isUserLoggedIn", true);
+            edit.PutString("currentUserID", "2");
+            edit.PutString("currentUserName", "fru jensen");
+            edit.PutString("currentUserType", "citizen");
+            edit.Apply();
+
+            if (prefs.GetBoolean("isUserLoggedIn", false))
+            {
+                currentUser.ID = prefs.GetString("currentUserID", "-1");
+                currentUser.Name = prefs.GetString("currentUserName", "-1");
+                currentUser.Type = (User.UserTypes)Enum.Parse(typeof(User.UserTypes), prefs.GetString("currentUserType", "-1"));
+                return true;
+            }
+            #endif
+            return false;
         }
 
 

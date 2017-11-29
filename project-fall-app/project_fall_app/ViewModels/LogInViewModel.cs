@@ -8,12 +8,15 @@ using System.Windows.Input;
 using Newtonsoft.Json;
 #if __ANDROID__
     using Org.Json;
+    using Android.Content;
+    using Android.Preferences;
 #endif
 using project_fall_app.Models;
 using Xamarin.Forms;
 using XLabs.Ioc;
 using XLabs.Platform.Device;
 using XLabs.Platform.Services;
+
 
 namespace project_fall_app.ViewModels
 {
@@ -29,6 +32,8 @@ namespace project_fall_app.ViewModels
             mscntr = Resolver.Resolve<IMessagingCenter>();
             dvce = Resolver.Resolve<IDevice>();
             ntwrk = Resolver.Resolve<INetwork>();
+
+
             LogOnCommand = new Command(() =>
             {
                 bool loginSuccessful = PerformLogin();
@@ -45,10 +50,13 @@ namespace project_fall_app.ViewModels
         }
 
 
+
         private bool PerformLogin()
         {
+        #if __ANDROID__
             string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/user";
             ResponseObject responseObject;
+
             try
             {
                 //TODO: put some code calling the right stuff
@@ -69,10 +77,19 @@ namespace project_fall_app.ViewModels
 
                 if (responseObject.body.id != "-1")
                 {
+                    ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(Xamarin.Forms.Forms.Context);
+                    ISharedPreferencesEditor edit = prefs.Edit();
+
                     currentUser = new User();
                     currentUser.ID = responseObject.body.id;
                     currentUser.Name = responseObject.body.name;
                     currentUser.Type = (User.UserTypes)Enum.Parse(typeof(User.UserTypes), responseObject.body.role);
+
+                    edit.PutBoolean("isUserLoggedIn", true);
+                    edit.PutString("currentUserID", responseObject.body.id);
+                    edit.PutString("currentUserName", responseObject.body.name);
+                    edit.PutString("currentUserType", responseObject.body.role.ToString());
+                    edit.Apply();
                 }
                 else
                 {
@@ -85,12 +102,12 @@ namespace project_fall_app.ViewModels
                 Console.WriteLine(e.Message);
                 throw;
             }
+            //return false;
+        #else 
+            return true;
+        #endif
 
-
-            return false;
         }
-
-
         private string usernameText;
         private string passwordText;
 
