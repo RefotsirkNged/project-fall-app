@@ -5,11 +5,10 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Input;
-using Android.App;
-using Android.Content;
-using Android.Widget;
 using Newtonsoft.Json;
-using Org.Json;
+#if __ANDROID__
+    using Org.Json;
+#endif
 using project_fall_app.Models;
 using Xamarin.Forms;
 using XLabs.Ioc;
@@ -49,8 +48,6 @@ namespace project_fall_app.ViewModels
         private bool PerformLogin()
         {
             string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/user";
-            string responsetext;
-            JSONObject jobj;
             ResponseObject responseObject;
             try
             {

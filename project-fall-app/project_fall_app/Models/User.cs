@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
-using project_fall_app.Droid.Annotations;
 
 namespace project_fall_app.Models
 {

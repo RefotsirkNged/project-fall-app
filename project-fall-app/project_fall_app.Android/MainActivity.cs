@@ -3,7 +3,6 @@
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
@@ -14,8 +13,6 @@ using XLabs.Ioc;
 using XLabs.Platform.Device;
 using XLabs.Platform.Services;
 using Android.Gms.Common;
-using Android.Util;
-using Firebase;
 using Plugin.FirebasePushNotification;
 
 namespace project_fall_app.Droid

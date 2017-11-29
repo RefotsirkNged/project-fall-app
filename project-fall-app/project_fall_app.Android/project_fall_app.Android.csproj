@@ -194,6 +194,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MyCountDownTimer.cs" />
     <Compile Include="FallService.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Properties\Annotations.cs" />
