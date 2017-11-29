@@ -21,7 +21,7 @@ namespace project_fall_app.Droid
         {
         }
 
-        public MyCountDownTimer(long countDownTime, IWriteToScreen writeToScreen) : base(countDownTime, 100)
+        public MyCountDownTimer(long secondsInFuture, IWriteToScreen writeToScreen) : base(secondsInFuture*1000, 100)
         {
             this.writeToScreen = writeToScreen;
 
@@ -34,7 +34,7 @@ namespace project_fall_app.Droid
 
         public override void OnTick(long millisUntilFinished)
         {
-            writeToScreen.WriteToScreenElement((millisUntilFinished/1000/60).ToString());
+            writeToScreen.WriteToScreenElement((millisUntilFinished/1000).ToString());
         }
     }
 }

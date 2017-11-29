@@ -11,7 +11,7 @@
     <ContentView.Content>
         
         <StackLayout VerticalOptions="Center">
-            <Label AutomationId="CountDown" Text="{Binding CountDown}" />
+            <Label AutomationId="CountDown" Text="{Binding CountDown}" TextColor="{StaticResource TextColor}" FontSize="22" Margin="10,10,10,10" HorizontalOptions="Center" />
             <bc:CircleButton Style="{StaticResource BigRoundButtonStyle}" AutomationId="YesHelp" Text="Ja" Command="{Binding ConfirmCallForHelpCommand}" ></bc:CircleButton>
             <bc:CircleButton Style="{StaticResource BigRoundButtonStyle}" AutomationId="NoHelp" Text="Nej" Command="{Binding AbortCallForHelpCommand}" ></bc:CircleButton>
         </StackLayout>

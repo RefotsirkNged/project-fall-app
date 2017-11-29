@@ -66,7 +66,16 @@ namespace project_fall_app.ViewModels
             {
                 //TODO implement proper login
                 currentUser = userobj;
-                shiftHelp();
+                switch (currentUser.Type)
+                {
+                    case User.UserTypes.citizen:
+                        shiftHelp();
+                        break;
+                    case User.UserTypes.contact:
+                        shiftWaitingToHelp();
+                        break;
+                }
+                
             });
 
             MessagingCenter.Subscribe<HelpViewModel>(this, "callForHelp", (sender) =>

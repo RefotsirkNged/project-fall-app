@@ -34,7 +34,7 @@ namespace project_fall_app.ViewModels
                 mscntr.Send<FallResponseViewModel>(this, "callForHelpAborted");
             });
             #if __ANDROID__
-                new Droid.MyCountDownTimer(1, this).Start();
+                new Droid.MyCountDownTimer(1*60, this).Start();
             #endif
 
         }
