@@ -63,7 +63,7 @@ namespace project_fall_app.ViewModels
         private bool IsUserLoggedIn()
         {
             #if __ANDROID__
-            ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(Xamarin.Forms.Forms.Context);
+            /*ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(Xamarin.Forms.Forms.Context);
             ISharedPreferencesEditor edit = prefs.Edit();
             edit.PutBoolean("isUserLoggedIn", true);
             edit.PutString("currentUserID", "2");
@@ -77,7 +77,7 @@ namespace project_fall_app.ViewModels
                 currentUser.Name = prefs.GetString("currentUserName", "-1");
                 currentUser.Type = (User.UserTypes)Enum.Parse(typeof(User.UserTypes), prefs.GetString("currentUserType", "-1"));
                 return true;
-            }
+            }*/
             #endif
             return false;
         }
@@ -113,7 +113,14 @@ namespace project_fall_app.ViewModels
 
             MessagingCenter.Subscribe<HelpViewModel>(this, "callForHelp", (sender) =>
             {
-                shiftFallResponse(); 
+                shiftFallResponse();
+            });
+
+            MessagingCenter.Subscribe<MainActivity>(this, "logOut", (sender) =>
+            {
+                //TODO rest local saved user
+
+                shiftLogIn();
             });
 
 
