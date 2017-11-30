@@ -80,27 +80,51 @@ namespace project_fall_app.ViewModels
 
         private async Task VerifyUserCredentialFileExistence()
         {
-            IFolder rootFolder = FileSystem.Current.LocalStorage;
-            ExistenceCheckResult fileExist = await rootFolder.CheckExistsAsync("userCredentials.txt");
-
-            if (fileExist == ExistenceCheckResult.FileExists)
+            try
             {
-                IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
-                String fileContext = await userFile.ReadAllTextAsync();
+                IFolder rootFolder = FileSystem.Current.LocalStorage;
+                ExistenceCheckResult fileExist = await rootFolder.CheckExistsAsync("userCredentials.txt");
 
-                //TODO replace \ with \\ in login
+                if (fileExist == ExistenceCheckResult.FileExists)
+                //if (fileExist != ExistenceCheckResult.FileExists)
+                {
+                    IFile userFile =
+                        await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
+                    String fileContext = "2\nUsername ting\ncitizen";
+                    //String fileContext = await userFile.ReadAllTextAsync();
 
-                String[] split = fileContext.Split('\n');
-                currentUser.ID = split[0];
-                currentUser.Name = split[1];
-                currentUser.Type = (User.UserTypes) Enum.Parse(typeof(User.UserTypes), split[2]);
+                    //TODO replace \ with \\ in login
 
-                mscntr.Send(this, "performLogin", currentUser);
+                    String[] split = fileContext.Split('\n');
+                    currentUser.ID = split[0];
+                    currentUser.Name = split[1];
+                    currentUser.Type = (User.UserTypes) Enum.Parse(typeof(User.UserTypes), split[2]);
+
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        switch (currentUser.Type)
+                        {
+                            case User.UserTypes.citizen:
+                                shiftHelp();
+                                break;
+                            case User.UserTypes.contact:
+                                shiftWaitingToHelp();
+                                break;
+                        }
+                    });
+                }
+                else
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        //mscntr.Send(this, "logOut");
+                        shiftLogIn();
+                    });
+
             }
-            else
-                mscntr.Send(this, "logOut", currentUser);
-
-
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
         private bool CheckServerConnection()
         {
@@ -133,6 +157,11 @@ namespace project_fall_app.ViewModels
             MessagingCenter.Subscribe<HelpViewModel>(this, "callForHelp", (sender) =>
             {
                 shiftFallResponse(); 
+            });
+
+            MessagingCenter.Subscribe<MainActivity>(this, "logOut", (sender) =>
+            {
+                shiftLogIn();
             });
 
 
