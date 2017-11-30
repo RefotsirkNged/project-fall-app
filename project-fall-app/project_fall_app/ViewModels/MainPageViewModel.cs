@@ -153,6 +153,7 @@ namespace project_fall_app.ViewModels
                 (sender) => { shiftMessageResponse(); });
 
 #if __ANDROID__
+
             MessagingCenter.Subscribe<MainActivity, string>(this, "tokenRefreshed", (sender, value) =>
             {
                 if (value != null)

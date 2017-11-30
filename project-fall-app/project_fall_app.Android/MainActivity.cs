@@ -14,15 +14,17 @@ using XLabs.Platform.Device;
 using XLabs.Platform.Services;
 using Android.Gms.Common;
 using Plugin.FirebasePushNotification;
+using AlertDialog = Android.Support.V7.App.AlertDialog;
 
 namespace project_fall_app.Droid
 {
 	[Activity (Label = "project_fall_app", Icon = "@drawable/icon", Theme="@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
 	public class MainActivity : XFormsApplicationDroid //, global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
 	{
+	    private IMessagingCenter mscntr;
 
 
-		protected override void OnCreate (Bundle bundle)
+        protected override void OnCreate (Bundle bundle)
 		{
 
 
@@ -60,7 +62,7 @@ namespace project_fall_app.Droid
 
                 CrossFirebasePushNotification.Current.OnTokenRefresh += (s, p) =>
                 {
-                    IMessagingCenter mscntr = Resolver.Resolve<IMessagingCenter>();
+                    mscntr = Resolver.Resolve<IMessagingCenter>();
                     mscntr.Send(this, "tokenRefreshed", p.Token);
                     System.Diagnostics.Debug.WriteLine($"TOKEN: {p.Token}");
 		        };
@@ -95,6 +97,26 @@ namespace project_fall_app.Droid
 	            Toast.MakeText(ApplicationContext, "Device connection OK", ToastLength.Long).Show();
 	            return true;
 	        }
+	    }
+
+	    public override void OnBackPressed()
+	    {
+	        new AlertDialog.Builder(Xamarin.Forms.Forms.Context )
+                .SetTitle("Choice some action")
+                .SetCancelable(true)
+                .SetNegativeButton("Log Out", LogOut)
+                .SetPositiveButton("Close App", CloseApp)
+                .Create()
+                .Show();
+	    }
+
+	    private void CloseApp(object sender, DialogClickEventArgs e)
+	    {
+	        Finish();
+	    }
+	    private void LogOut(object sender, DialogClickEventArgs e)
+	    {
+	        mscntr.Send(this, "logOut");
 	    }
     }
 }
