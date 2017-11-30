@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
-using Android.App;
-using Android.Content;
-using project_fall_app.Droid;
+#if __ANDROID__ 
+    using Android.Content;
+    using project_fall_app.Droid;
+#endif
 using project_fall_app.Models;
 using project_fall_app.Views;
 using Plugin.FirebasePushNotification;
@@ -12,10 +14,8 @@ using Xamarin.Forms;
 using XLabs.Ioc;
 using XLabs.Platform.Device;
 using View = Xamarin.Forms.View;
-#if __ANDROID__
-    using Android.Content;
-    using Android.Preferences;
-#endif
+using PCLStorage;
+using System.IO;
 
 namespace project_fall_app.ViewModels
 {
@@ -28,7 +28,7 @@ namespace project_fall_app.ViewModels
         private int topBarLabelWidth;
         private string token;
 
-        private User currentUser; //store here, we can always access this if we need the user after the initial login has been done
+        private User currentUser = null; //store here, we can always access this if we need the user after the initial login has been done
 
         private IDevice device;
         private IMessagingCenter mscntr;
@@ -42,14 +42,22 @@ namespace project_fall_app.ViewModels
             mscntr = Resolver.Resolve<IMessagingCenter>();
 
             InitMessages();
-            if (IsUserLoggedIn())
-            {
-                mscntr.Send(this, "performLogin", currentUser);
-            }
-            else
-            {
-                PageContent = new LogInView(); //Startup screen, dont change pls, containted within the mainpage thingy
-            }
+            //if (IsUserLoggedIn())
+            //{
+            //    mscntr.Send(this, "performLogin", currentUser);
+            //}
+            //else
+            //{
+            //    PageContent = new LogInView(); //Startup screen, dont change pls, containted within the mainpage thingy
+            //}
+
+            VerifyUserCredentialFileExistence();
+
+            //if (currentUser != null)
+            //    mscntr.Send(this, "performLogin", currentUser);
+            //else 
+            //    PageContent = new LogInView(); 
+
 
             Title = "Falddetektions-app";
             TopBarHeight = 50;
@@ -62,27 +70,38 @@ namespace project_fall_app.ViewModels
         }
         private bool IsUserLoggedIn()
         {
-            #if __ANDROID__
-            ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(Xamarin.Forms.Forms.Context);
-            ISharedPreferencesEditor edit = prefs.Edit();
-            edit.PutBoolean("isUserLoggedIn", true);
-            edit.PutString("currentUserID", "2");
-            edit.PutString("currentUserName", "fru jensen");
-            edit.PutString("currentUserType", "citizen");
-            edit.Apply();
 
-            if (prefs.GetBoolean("isUserLoggedIn", false))
-            {
-                currentUser.ID = prefs.GetString("currentUserID", "-1");
-                currentUser.Name = prefs.GetString("currentUserName", "-1");
-                currentUser.Type = (User.UserTypes)Enum.Parse(typeof(User.UserTypes), prefs.GetString("currentUserType", "-1"));
-                return true;
-            }
-            #endif
+
+
+
             return false;
+
         }
 
+        private async Task VerifyUserCredentialFileExistence()
+        {
+            IFolder rootFolder = FileSystem.Current.LocalStorage;
+            ExistenceCheckResult fileExist = await rootFolder.CheckExistsAsync("userCredentials.txt");
 
+            if (fileExist == ExistenceCheckResult.FileExists)
+            {
+                IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
+                String fileContext = await userFile.ReadAllTextAsync();
+
+                //TODO replace \ with \\ in login
+
+                String[] split = fileContext.Split('\n');
+                currentUser.ID = split[0];
+                currentUser.Name = split[1];
+                currentUser.Type = (User.UserTypes) Enum.Parse(typeof(User.UserTypes), split[2]);
+
+                mscntr.Send(this, "performLogin", currentUser);
+            }
+            else
+                mscntr.Send(this, "logOut", currentUser);
+
+
+        }
         private bool CheckServerConnection()
         {
             //TODO:perform a check of whether or not the server is available
@@ -133,6 +152,7 @@ namespace project_fall_app.ViewModels
             MessagingCenter.Subscribe<MessageResponseViewModel>(this, "helpRequested",
                 (sender) => { shiftMessageResponse(); });
 
+#if __ANDROID__
             MessagingCenter.Subscribe<MainActivity, string>(this, "tokenRefreshed", (sender, value) =>
             {
                 if (value != null)
@@ -140,14 +160,15 @@ namespace project_fall_app.ViewModels
                     Token = value;
                 }
             });
+#endif
 
             //send messages
-            InfoButtonCommand = new Command(() =>
-            {
-                var clpman = (ClipboardManager) Forms.Context.GetSystemService(Context.ClipboardService);
+            //InfoButtonCommand = new Command(() =>
+            //{
+            //    var clpman = (ClipboardManager) Forms.Context.GetSystemService(Context.ClipboardService);
 
-                mscntr.Send<MainPageViewModel, string>(this, "showInfoAlert", Token);
-            });
+            //    mscntr.Send<MainPageViewModel, string>(this, "showInfoAlert", Token);
+            //});
         }
 
         #endregion

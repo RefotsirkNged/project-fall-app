@@ -4,18 +4,20 @@ using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Newtonsoft.Json;
 #if __ANDROID__
     using Org.Json;
-    using Android.Content;
-    using Android.Preferences;
 #endif
 using project_fall_app.Models;
+using PCLStorage;
 using Xamarin.Forms;
 using XLabs.Ioc;
 using XLabs.Platform.Device;
 using XLabs.Platform.Services;
+using PCLStorage;
+using System.IO;
 
 
 namespace project_fall_app.ViewModels
@@ -53,7 +55,6 @@ namespace project_fall_app.ViewModels
 
         private bool PerformLogin()
         {
-        #if __ANDROID__
             string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/user";
             ResponseObject responseObject;
 
@@ -77,19 +78,12 @@ namespace project_fall_app.ViewModels
 
                 if (responseObject.body.id != "-1")
                 {
-                    ISharedPreferences prefs = PreferenceManager.GetDefaultSharedPreferences(Xamarin.Forms.Forms.Context);
-                    ISharedPreferencesEditor edit = prefs.Edit();
-
                     currentUser = new User();
                     currentUser.ID = responseObject.body.id;
                     currentUser.Name = responseObject.body.name;
                     currentUser.Type = (User.UserTypes)Enum.Parse(typeof(User.UserTypes), responseObject.body.role);
 
-                    edit.PutBoolean("isUserLoggedIn", true);
-                    edit.PutString("currentUserID", responseObject.body.id);
-                    edit.PutString("currentUserName", responseObject.body.name);
-                    edit.PutString("currentUserType", responseObject.body.role.ToString());
-                    edit.Apply();
+                    CreateUserCredentialsFile(currentUser);
                 }
                 else
                 {
@@ -102,12 +96,22 @@ namespace project_fall_app.ViewModels
                 Console.WriteLine(e.Message);
                 throw;
             }
-            //return false;
-        #else 
-            return true;
-        #endif
+            //return true;
+        }
+
+
+        private async Task CreateUserCredentialsFile(User user)
+        {
+            IFolder rootFolder = FileSystem.Current.LocalStorage;
+            IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.ReplaceExisting);
+
+            await userFile.WriteAllTextAsync(user.Credentials);
+            String content = await userFile.ReadAllTextAsync();
+            String[] split = content.Split('\n');
 
         }
+        
+
         private string usernameText;
         private string passwordText;
 

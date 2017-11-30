@@ -19,6 +19,7 @@ namespace project_fall_app.Models
         private string name;
         private UserTypes type;
         #endregion
+
         #region gettersetter
         public string ID
         {
@@ -38,6 +39,10 @@ namespace project_fall_app.Models
             set { SetProperty(ref type, value); }
         }
 
+        public string Credentials
+        {
+            get { return String.Format("{0}\n{1}\n{2}", ID, Name, Type.ToString()); }
+        }
 
         #endregion
 
