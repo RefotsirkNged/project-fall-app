@@ -108,9 +108,36 @@ namespace project_fall_app.ViewModels
             await userFile.WriteAllTextAsync(user.Credentials);
             String content = await userFile.ReadAllTextAsync();
             String[] split = content.Split('\n');
-
         }
-        
+
+        public async Task UpdateContactList(User user)
+        {
+            IFolder rootFolder = FileSystem.Current.LocalStorage;
+            IFile contactFile =
+                await rootFolder.CreateFileAsync("contactList.txt", CreationCollisionOption.ReplaceExisting);
+            string filecontent = "";
+            foreach (Contact contact in user.contactList)
+            {
+                filecontent += contact.Info + "\n";
+            }
+
+            await contactFile.WriteAllTextAsync(filecontent);
+        }
+
+        public async Task ReadContactList()
+        {
+            IFolder rootFolder = FileSystem.Current.LocalStorage;
+            IFile contactFile =
+                await rootFolder.CreateFileAsync("contactList.txt", CreationCollisionOption.OpenIfExists);
+            string filecontent = await contactFile.ReadAllTextAsync();
+            string[] contactInfos = filecontent.Split('\n');
+            List<Contact> contacs = new List<Contact>();
+
+            foreach (string info in contactInfos)
+            {
+                contacs.Add(new Contact(info));
+            }
+        }
 
         private string usernameText;
         private string passwordText;

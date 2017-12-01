@@ -18,6 +18,7 @@ namespace project_fall_app.Models
         private string id;
         private string name;
         private UserTypes type;
+        private List<>
         #endregion
 
         #region gettersetter
