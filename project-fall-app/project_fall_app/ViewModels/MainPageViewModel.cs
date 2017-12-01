@@ -120,6 +120,14 @@ namespace project_fall_app.ViewModels
         }
 
 
+        private async Task DeleteUserCredentials()
+        {
+            IFolder rootFolder = FileSystem.Current.LocalStorage;
+            IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
+
+            userFile.DeleteAsync();
+        }
+
         #region MessageCenter
 
         private void InitMessages()
@@ -148,6 +156,7 @@ namespace project_fall_app.ViewModels
 
             MessagingCenter.Subscribe<MainActivity>(this, "logOut", (sender) =>
             {
+                DeleteUserCredentials();
                 shiftLogIn();
             });
 
