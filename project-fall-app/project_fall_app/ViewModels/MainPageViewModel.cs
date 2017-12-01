@@ -16,6 +16,9 @@ using XLabs.Platform.Device;
 using View = Xamarin.Forms.View;
 using PCLStorage;
 using System.IO;
+using System.Net;
+using Android.App;
+using Newtonsoft.Json;
 
 namespace project_fall_app.ViewModels
 {
@@ -65,7 +68,11 @@ namespace project_fall_app.ViewModels
 
             if (!CheckServerConnection())
             {
-                //TODO: maybe add some kind of popup to handle this?
+                new AlertDialog.Builder(Xamarin.Forms.Forms.Context).SetPositiveButton("Ok", (sender, args) => {})
+                    .SetMessage("Kan ikke forbinde til serveren")
+                    .SetTitle("Forbindelse fejl")
+                    .Show();
+
             }
         }
 
@@ -81,8 +88,6 @@ namespace project_fall_app.ViewModels
                     IFile userFile =
                         await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
                     String fileContext = await userFile.ReadAllTextAsync();
-
-                    //TODO replace \ with \\ in login
 
                     String[] split = fileContext.Split('\n');
                     currentUser.ID = split[0];
@@ -116,6 +121,20 @@ namespace project_fall_app.ViewModels
         private bool CheckServerConnection()
         {
             //TODO:perform a check of whether or not the server is available
+            HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create(url);
+            request.Method = "GET";
+            request.Headers.Add("email", UsernameText);
+            request.Headers.Add("password", PasswordText);
+
+            using (var response = request.GetResponse())
+            {
+                using (var reader = new StreamReader(response.GetResponseStream()))
+                {
+                    responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
+                }
+            }
+
+            
             return true;
         }
 
@@ -124,8 +143,7 @@ namespace project_fall_app.ViewModels
         {
             IFolder rootFolder = FileSystem.Current.LocalStorage;
             IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
-
-            userFile.DeleteAsync();
+            await userFile.DeleteAsync();
         }
 
         #region MessageCenter

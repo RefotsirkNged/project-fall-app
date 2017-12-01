@@ -60,9 +60,6 @@ namespace project_fall_app.ViewModels
 
             try
             {
-                //TODO: put some code calling the right stuff
-                //if (ntwrk.IsReachable(url, new TimeSpan(0, 0, 30)).Result)
-                // {
                 HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create(url);
                 request.Method = "GET";
                 request.Headers.Add("email", UsernameText);
@@ -137,6 +134,7 @@ namespace project_fall_app.ViewModels
             {
                 contacs.Add(new Contact(info));
             }
+            //TODO do something with the list
         }
 
         private string usernameText;
@@ -147,13 +145,14 @@ namespace project_fall_app.ViewModels
         public string UsernameText
         {
             get { return usernameText; }
-            set { SetProperty(ref usernameText, value); }
+            set { SetProperty(ref usernameText, value.Replace(@"\", @"\\")); }
         }
 
         public string PasswordText
         {
             get { return passwordText; }
-            set { SetProperty(ref passwordText, value); }
+            set { SetProperty(ref passwordText, value.Replace(@"\", @"\\")); }
+            
         }
     }
 }
