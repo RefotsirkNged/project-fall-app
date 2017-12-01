@@ -28,7 +28,7 @@ namespace project_fall_app.ViewModels
         private int topBarLabelWidth;
         private string token;
 
-        private User currentUser = null; //store here, we can always access this if we need the user after the initial login has been done
+        private User currentUser = new User(); //store here, we can always access this if we need the user after the initial login has been done
 
         private IDevice device;
         private IMessagingCenter mscntr;
@@ -68,15 +68,6 @@ namespace project_fall_app.ViewModels
                 //TODO: maybe add some kind of popup to handle this?
             }
         }
-        private bool IsUserLoggedIn()
-        {
-
-
-
-
-            return false;
-
-        }
 
         private async Task VerifyUserCredentialFileExistence()
         {
@@ -86,12 +77,10 @@ namespace project_fall_app.ViewModels
                 ExistenceCheckResult fileExist = await rootFolder.CheckExistsAsync("userCredentials.txt");
 
                 if (fileExist == ExistenceCheckResult.FileExists)
-                //if (fileExist != ExistenceCheckResult.FileExists)
                 {
                     IFile userFile =
                         await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
-                    String fileContext = "2\nUsername ting\ncitizen";
-                    //String fileContext = await userFile.ReadAllTextAsync();
+                    String fileContext = await userFile.ReadAllTextAsync();
 
                     //TODO replace \ with \\ in login
 
@@ -116,10 +105,8 @@ namespace project_fall_app.ViewModels
                 else
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        //mscntr.Send(this, "logOut");
                         shiftLogIn();
                     });
-
             }
             catch (Exception e)
             {
