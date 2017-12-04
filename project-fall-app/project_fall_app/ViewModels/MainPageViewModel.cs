@@ -6,6 +6,7 @@ using System.Windows.Input;
 #if __ANDROID__ 
     using Android.Content;
     using project_fall_app.Droid;
+    using Android.App;
 #endif
 using project_fall_app.Models;
 using project_fall_app.Views;
@@ -17,7 +18,6 @@ using View = Xamarin.Forms.View;
 using PCLStorage;
 using System.IO;
 using System.Net;
-using Android.App;
 using Newtonsoft.Json;
 
 namespace project_fall_app.ViewModels
@@ -66,6 +66,7 @@ namespace project_fall_app.ViewModels
             TopBarHeight = 50;
             TopBarLabelWidth = (int) (device.Display.Width * 0.9f);
 
+#if __ANDROID__
             if (!CheckServerConnection())
             {
                 new AlertDialog.Builder(Xamarin.Forms.Forms.Context).SetPositiveButton("Ok", (sender, args) => {})
@@ -74,6 +75,7 @@ namespace project_fall_app.ViewModels
                     .Show();
 
             }
+#endif
         }
 
         private async Task VerifyUserCredentialFileExistence()
@@ -87,28 +89,24 @@ namespace project_fall_app.ViewModels
                 {
                     IFile userFile =
                         await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
-                    String fileContext = await userFile.ReadAllTextAsync();
+                    String fileContent = await userFile.ReadAllTextAsync();
 
-                    String[] split = fileContext.Split('\n');
-                    currentUser.ID = split[0];
-                    currentUser.Name = split[1];
-                    currentUser.Type = (User.UserTypes) Enum.Parse(typeof(User.UserTypes), split[2]);
+                    currentUser = JsonConvert.DeserializeObject<User>(JsonConvert.DeserializeObject<dynamic>(fileContent)["body"].ToString());
 
-                    Device.BeginInvokeOnMainThread(() =>
+                    Xamarin.Forms.Device.BeginInvokeOnMainThread(() =>
                     {
-                        switch (currentUser.Type)
+                        if (currentUser.GetType() == typeof(Citizen))
                         {
-                            case User.UserTypes.citizen:
-                                shiftHelp();
-                                break;
-                            case User.UserTypes.contact:
-                                shiftWaitingToHelp();
-                                break;
+                            shiftHelp();
+                        }
+                        else if (currentUser.GetType() == typeof(Contact))
+                        {
+                            shiftWaitingToHelp();
                         }
                     });
                 }
                 else
-                    Device.BeginInvokeOnMainThread(() =>
+                    Xamarin.Forms.Device.BeginInvokeOnMainThread(() =>
                     {
                         shiftLogIn();
                     });
@@ -121,16 +119,16 @@ namespace project_fall_app.ViewModels
         private bool CheckServerConnection()
         {
             //TODO:perform a check of whether or not the server is available
-            HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create(url);
+            HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create("https://google.dk");
             request.Method = "GET";
-            request.Headers.Add("email", UsernameText);
-            request.Headers.Add("password", PasswordText);
+            //request.Headers.Add("email", UsernameText);
+            //request.Headers.Add("password", PasswordText);
 
             using (var response = request.GetResponse())
             {
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
-                    responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
+                    //responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
                 }
             }
 
@@ -153,16 +151,14 @@ namespace project_fall_app.ViewModels
             //Subscriptions
             MessagingCenter.Subscribe<LogInViewModel, User>(this, "performLogin", (sender, userobj) =>
             {
-                //TODO implement proper login
                 currentUser = userobj;
-                switch (currentUser.Type)
+                if (currentUser.GetType() == typeof(Citizen))
                 {
-                    case User.UserTypes.citizen:
-                        shiftHelp();
-                        break;
-                    case User.UserTypes.contact:
-                        shiftWaitingToHelp();
-                        break;
+                    shiftHelp(); 
+                }
+                else if (currentUser.GetType() == typeof(Contact))
+                {
+                    shiftWaitingToHelp();
                 }
                 
             });
@@ -172,11 +168,13 @@ namespace project_fall_app.ViewModels
                 shiftFallResponse(); 
             });
 
+#if __ANDROID__
             MessagingCenter.Subscribe<MainActivity>(this, "logOut", (sender) =>
             {
                 DeleteUserCredentials();
                 shiftLogIn();
             });
+#endif
 
 
             MessagingCenter.Subscribe<FallResponseViewModel>(this, "callForHelpConfirmed", (sender) =>

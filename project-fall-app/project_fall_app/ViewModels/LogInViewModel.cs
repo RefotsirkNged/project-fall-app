@@ -56,7 +56,6 @@ namespace project_fall_app.ViewModels
         private bool PerformLogin()
         {
             string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/user";
-            ResponseObject responseObject;
 
             try
             {
@@ -69,17 +68,25 @@ namespace project_fall_app.ViewModels
                 {
                     using (var reader = new StreamReader(response.GetResponseStream()))
                     {
-                        responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
+                        //responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
+                        currentUser = JsonConvert.DeserializeObject<Citizen>(JsonConvert.DeserializeObject<dynamic>(reader.ReadToEnd())["body"].ToString());
+
+                        for (var i = 0; i < currentUser.devices.Count; i++)
+                        {
+                            currentUser.devices[i] = new Models.Device()
+                            {
+                                id = currentUser.devices[i].id,
+                                content = JsonConvert.DeserializeObject<Content>(currentUser.devices[i].content, new JsonSerializerSettings()
+                                {
+                                    TypeNameHandling = TypeNameHandling.All
+                                })
+                            };
+                        }
                     }
                 }
 
-                if (responseObject.body.id != "-1")
+                if (currentUser.id != -1)
                 {
-                    currentUser = new User();
-                    currentUser.ID = responseObject.body.id;
-                    currentUser.Name = responseObject.body.name;
-                    currentUser.Type = (User.UserTypes)Enum.Parse(typeof(User.UserTypes), responseObject.body.role);
-
                     CreateUserCredentialsFile(currentUser);
                 }
                 else
@@ -102,23 +109,7 @@ namespace project_fall_app.ViewModels
             IFolder rootFolder = FileSystem.Current.LocalStorage;
             IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.ReplaceExisting);
 
-            await userFile.WriteAllTextAsync(user.Credentials);
-            String content = await userFile.ReadAllTextAsync();
-            String[] split = content.Split('\n');
-        }
-
-        public async Task UpdateContactList(User user)
-        {
-            IFolder rootFolder = FileSystem.Current.LocalStorage;
-            IFile contactFile =
-                await rootFolder.CreateFileAsync("contactList.txt", CreationCollisionOption.ReplaceExisting);
-            string filecontent = "";
-            foreach (Contact contact in user.contactList)
-            {
-                filecontent += contact.Info + "\n";
-            }
-
-            await contactFile.WriteAllTextAsync(filecontent);
+            await userFile.WriteAllTextAsync(JsonConvert.SerializeObject(user));
         }
 
         public async Task ReadContactList()
@@ -127,13 +118,23 @@ namespace project_fall_app.ViewModels
             IFile contactFile =
                 await rootFolder.CreateFileAsync("contactList.txt", CreationCollisionOption.OpenIfExists);
             string filecontent = await contactFile.ReadAllTextAsync();
-            string[] contactInfos = filecontent.Split('\n');
-            List<Contact> contacs = new List<Contact>();
 
-            foreach (string info in contactInfos)
+
+
+            currentUser = JsonConvert.DeserializeObject<User>(JsonConvert.DeserializeObject<dynamic>(filecontent)["body"].ToString());
+
+            for (var i = 0; i < currentUser.devices.Count; i++)
             {
-                contacs.Add(new Contact(info));
+                currentUser.devices[i] = new Models.Device()
+                {
+                    id = currentUser.devices[i].id,
+                    content = JsonConvert.DeserializeObject<Content>(currentUser.devices[i].content, new JsonSerializerSettings()
+                    {
+                        TypeNameHandling = TypeNameHandling.All
+                    })
+                };
             }
+
             //TODO do something with the list
         }
 

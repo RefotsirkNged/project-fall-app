@@ -15,7 +15,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)InterFace\IWriteToScreen.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InterFace\IMakeCall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ResponseObject.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\User.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\BaseViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\FallResponseViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\HelpViewModel.cs" />
