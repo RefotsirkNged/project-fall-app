@@ -8,7 +8,7 @@
     </ContentView.BindingContext>
     <ContentView.Content>
         <StackLayout>
-            <ListView ItemsSource="{Binding CitizenList}" Margin="10,10,10,10" BackgroundColor="Transparent" IsEnabled="False">
+            <ListView ItemsSource="{Binding CitizenList}" AutomationId="ContactList" Margin="10,10,10,10" BackgroundColor="Transparent" IsEnabled="False">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>

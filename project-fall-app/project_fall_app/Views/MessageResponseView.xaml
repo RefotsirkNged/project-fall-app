@@ -9,8 +9,8 @@
     </ContentView.BindingContext>
     <ContentView.Content>
         <StackLayout>
-           <bc:CircleButton Text="Ja" Style="{StaticResource BigRoundButtonStyle}" Command="{Binding CanHelpCommand}"></bc:CircleButton>
-           <bc:CircleButton Text="Nej" Style="{StaticResource BigRoundButtonStyle}" Command="{Binding CannotHelpCommand}"></bc:CircleButton>
+           <bc:CircleButton Text="Ja" AutomationId="YesICanHelp" Style="{StaticResource BigRoundButtonStyle}" Command="{Binding CanHelpCommand}"></bc:CircleButton>
+           <bc:CircleButton Text="Nej" AutomationId="NoICantHelp" Style="{StaticResource BigRoundButtonStyle}" Command="{Binding CannotHelpCommand}"></bc:CircleButton>
         </StackLayout>
     </ContentView.Content>
 </ContentView>
