@@ -7,6 +7,7 @@ using System.Windows.Input;
     using Android.Content;
     using project_fall_app.Droid;
     using Android.App;
+    using Android.Widget;
 #endif
 using project_fall_app.Models;
 using project_fall_app.Views;
@@ -30,8 +31,8 @@ namespace project_fall_app.ViewModels
         private View pageContent;
         private int topBarLabelWidth;
         private string token;
-
-        private User currentUser = new User(); //store here, we can always access this if we need the user after the initial login has been done
+        //store here, we can always access this if we need the user after the initial login has been done
+        private User currentUser = new User();
 
         private IDevice device;
         private IMessagingCenter mscntr;
@@ -45,37 +46,11 @@ namespace project_fall_app.ViewModels
             mscntr = Resolver.Resolve<IMessagingCenter>();
 
             InitMessages();
-            //if (IsUserLoggedIn())
-            //{
-            //    mscntr.Send(this, "performLogin", currentUser);
-            //}
-            //else
-            //{
-            //    PageContent = new LogInView(); //Startup screen, dont change pls, containted within the mainpage thingy
-            //}
-
             VerifyUserCredentialFileExistence();
-
-            //if (currentUser != null)
-            //    mscntr.Send(this, "performLogin", currentUser);
-            //else 
-            //    PageContent = new LogInView(); 
-
 
             Title = "Falddetektions-app";
             TopBarHeight = 50;
             TopBarLabelWidth = (int) (device.Display.Width * 0.9f);
-
-#if __ANDROID__
-            if (!CheckServerConnection())
-            {
-                new AlertDialog.Builder(Xamarin.Forms.Forms.Context).SetPositiveButton("Ok", (sender, args) => {})
-                    .SetMessage("Kan ikke forbinde til serveren")
-                    .SetTitle("Forbindelse fejl")
-                    .Show();
-
-            }
-#endif
         }
 
         private async Task VerifyUserCredentialFileExistence()
@@ -91,15 +66,32 @@ namespace project_fall_app.ViewModels
                         await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
                     String fileContent = await userFile.ReadAllTextAsync();
 
-                    currentUser = JsonConvert.DeserializeObject<User>(JsonConvert.DeserializeObject<dynamic>(fileContent)["body"].ToString());
+                    currentUser = JsonConvert.DeserializeObject<User>(fileContent);
+                    currentUser.jsonCredentials = fileContent;
+
+                    if (currentUser.role == "citizen")
+                    {
+                        foreach (var contact in currentUser.contacts)
+                        {
+                            foreach (var device in contact.devices)
+                            {
+                                if (device.devicetype == "smartphone")
+                                {
+                                    Models.Device Ndevice =
+                                        JsonConvert.DeserializeObject<Models.Device>(device.content);
+                                    device.number = Ndevice.number;
+                                }
+                            }
+                        }
+                    }
 
                     Xamarin.Forms.Device.BeginInvokeOnMainThread(() =>
                     {
-                        if (currentUser.GetType() == typeof(Citizen))
+                        if (currentUser.role == "citizen")
                         {
                             shiftHelp();
                         }
-                        else if (currentUser.GetType() == typeof(Contact))
+                        else if (currentUser.role == "contact")
                         {
                             shiftWaitingToHelp();
                         }
@@ -144,6 +136,50 @@ namespace project_fall_app.ViewModels
             await userFile.DeleteAsync();
         }
 
+        private void SendAlarm(User user)
+        {
+            if (!LogInViewModel.CheckForInternetConnection())
+            {
+                if (currentUser.contacts.Count >= 1)
+                {
+#if __ANDROID__
+                    PhoneCallDroid call = new PhoneCallDroid();
+                    call.MakeQuickCall(user.contacts[0].devices[0].number);
+#endif
+                }
+                return;
+            }
+
+            string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/alarm";
+            HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create(url);
+            
+            request.Method = "POST";
+            request.Headers.Add("citizen", user.jsonCredentials);
+            //request.Headers.Add("location", location);
+
+            using (var response = request.GetResponse())
+            {
+                switch (((HttpWebResponse)response).StatusCode)
+                {
+                    case HttpStatusCode.OK:
+#if __ANDROID__
+                        Toast.MakeText(Xamarin.Forms.Forms.Context, "Alarm blev successfuldt sendt.", ToastLength.Long);
+#endif
+                        break;
+                    default:
+#if __ANDROID__
+                        if (currentUser.contacts.Count >= 1)
+                        {
+                            PhoneCallDroid call = new PhoneCallDroid();
+                            call.MakeQuickCall(currentUser.contacts[0].number);
+                            
+                        }
+#endif
+                        break;
+                }
+            }
+        }
+
         #region MessageCenter
 
         private void InitMessages()
@@ -152,11 +188,11 @@ namespace project_fall_app.ViewModels
             MessagingCenter.Subscribe<LogInViewModel, User>(this, "performLogin", (sender, userobj) =>
             {
                 currentUser = userobj;
-                if (currentUser.GetType() == typeof(Citizen))
+                if (currentUser.role == "citizen")
                 {
                     shiftHelp(); 
                 }
-                else if (currentUser.GetType() == typeof(Contact))
+                else if (currentUser.role == "contact")
                 {
                     shiftWaitingToHelp();
                 }
@@ -179,7 +215,7 @@ namespace project_fall_app.ViewModels
 
             MessagingCenter.Subscribe<FallResponseViewModel>(this, "callForHelpConfirmed", (sender) =>
             {
-                //TODO implement server call
+                SendAlarm(currentUser);
                 shiftHelp();
             });
 
@@ -203,14 +239,6 @@ namespace project_fall_app.ViewModels
                 }
             });
 #endif
-
-            //send messages
-            //InfoButtonCommand = new Command(() =>
-            //{
-            //    var clpman = (ClipboardManager) Forms.Context.GetSystemService(Context.ClipboardService);
-
-            //    mscntr.Send<MainPageViewModel, string>(this, "showInfoAlert", Token);
-            //});
         }
 
         #endregion

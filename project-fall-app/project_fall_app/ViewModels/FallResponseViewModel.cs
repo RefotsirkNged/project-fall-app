@@ -12,6 +12,10 @@ namespace project_fall_app.ViewModels
     class FallResponseViewModel : BaseViewModel , Models.IWriteToScreen
     {
         string countDown = "1.00";
+#if __ANDROID__
+        private Droid.MyCountDownTimer liveCounter;
+#endif
+
         public string CountDown
         {
             get { return countDown; }
@@ -22,20 +26,25 @@ namespace project_fall_app.ViewModels
 
         public FallResponseViewModel()
         {
-
-
-        mscntr = Resolver.Resolve<IMessagingCenter>();
+            mscntr = Resolver.Resolve<IMessagingCenter>();
             ConfirmCallForHelpCommand = new Command(() =>
             {
+#if __ANDROID__
+                liveCounter.Cancel();
+#endif
                 mscntr.Send<FallResponseViewModel>(this, "callForHelpConfirmed");
             });
             AbortCallForHelpCommand = new Command(() =>
             {
+#if __ANDROID__
+                liveCounter.Cancel();
+#endif
                 mscntr.Send<FallResponseViewModel>(this, "callForHelpAborted");
             });
-            #if __ANDROID__
-                new Droid.MyCountDownTimer(1*60, this).Start();
-            #endif
+#if __ANDROID__
+            liveCounter = new Droid.MyCountDownTimer(1 * 60, this);
+            liveCounter.Start();
+#endif
 
         }
 

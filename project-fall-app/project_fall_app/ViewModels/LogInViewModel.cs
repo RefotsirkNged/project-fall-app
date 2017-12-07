@@ -9,6 +9,7 @@ using System.Windows.Input;
 using Newtonsoft.Json;
 #if __ANDROID__
     using Org.Json;
+using Android.Widget;
 #endif
 using project_fall_app.Models;
 using PCLStorage;
@@ -18,6 +19,7 @@ using XLabs.Platform.Device;
 using XLabs.Platform.Services;
 using PCLStorage;
 using System.IO;
+using System.Net.NetworkInformation;
 
 
 namespace project_fall_app.ViewModels
@@ -38,20 +40,39 @@ namespace project_fall_app.ViewModels
 
             LogOnCommand = new Command(() =>
             {
-                bool loginSuccessful = PerformLogin();
-                if (loginSuccessful)
+                bool isThereInternet = CheckForInternetConnection();
+                if (isThereInternet)
                 {
-                    mscntr.Send(this, "performLogin", currentUser);
+                    bool loginSuccessful = PerformLogin();
+                    if (loginSuccessful)
+                    {
+                        mscntr.Send(this, "performLogin", currentUser);
+                    }
+                    else
+                    {
+                        Page page = new Page();
+                        page.DisplayAlert("Login Error", "Forkert password eller bruger navn", "okay").Start();
+                    }
                 }
                 else
                 {
-                    Page page = new Page();
-                    page.DisplayAlert("Login Error", "Forkert password eller bruger navn", "okay").Start();
+#if __ANDROID__
+                    Toast.MakeText(Xamarin.Forms.Forms.Context, "Ingen forbindelse til internettet.", ToastLength.Long).Show();
+#endif
                 }
             });
         }
 
+        public static bool CheckForInternetConnection()
+        {
+            Ping sender = new Ping();
+            PingReply reply = sender.Send("8.8.8.8");
 
+            if (reply.Status == IPStatus.Success)
+                return true;
+            else
+                return false;
+        }
 
         private bool PerformLogin()
         {
@@ -66,34 +87,50 @@ namespace project_fall_app.ViewModels
 
                 using (var response = request.GetResponse())
                 {
-                    using (var reader = new StreamReader(response.GetResponseStream()))
+                    switch (((HttpWebResponse)response).StatusCode)
                     {
-                        //responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
-                        currentUser = JsonConvert.DeserializeObject<Citizen>(JsonConvert.DeserializeObject<dynamic>(reader.ReadToEnd())["body"].ToString());
-
-                        for (var i = 0; i < currentUser.devices.Count; i++)
-                        {
-                            currentUser.devices[i] = new Models.Device()
+                        case HttpStatusCode.OK:
+                            using (var reader = new StreamReader(response.GetResponseStream()))
                             {
-                                id = currentUser.devices[i].id,
-                                content = JsonConvert.DeserializeObject<Content>(currentUser.devices[i].content, new JsonSerializerSettings()
+                                //responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
+                                string json = reader.ReadToEnd();
+                                json = JsonConvert.DeserializeObject<dynamic>(json)["body"].ToString();
+                                currentUser = JsonConvert.DeserializeObject<User>(json);
+                                currentUser.jsonCredentials = json;
+
+                                if (currentUser.contacts == null && currentUser.id != -1)
                                 {
-                                    TypeNameHandling = TypeNameHandling.All
-                                })
-                            };
-                        }
+                                    CreateUserCredentialsFile(currentUser);
+                                    return true;
+                                }
+
+                                foreach (var contact in currentUser.contacts)
+                                {
+                                    foreach (var device in contact.devices)
+                                    {
+                                        if (device.devicetype == "smartphone")
+                                        {
+                                            Models.Device Ndevice = JsonConvert.DeserializeObject<Models.Device>(device.content);
+                                            device.number = Ndevice.number;
+                                        }
+                                    }
+                                }
+                            }
+                            if (currentUser.id != -1)
+                            {
+                                CreateUserCredentialsFile(currentUser);
+                                return true;
+                            }
+                            break;
+
+                        default:
+#if __ANDROID__
+                            Toast.MakeText(Xamarin.Forms.Forms.Context, "Ku ikke forbinde til serveren.", ToastLength.Long).Show();
+#endif
+                            return false;
                     }
                 }
-
-                if (currentUser.id != -1)
-                {
-                    CreateUserCredentialsFile(currentUser);
-                }
-                else
-                {
-                    return false;
-                }
-                return true;
+                return false;
             }
             catch (Exception e)
             {
@@ -109,31 +146,19 @@ namespace project_fall_app.ViewModels
             IFolder rootFolder = FileSystem.Current.LocalStorage;
             IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.ReplaceExisting);
 
-            await userFile.WriteAllTextAsync(JsonConvert.SerializeObject(user));
+            await userFile.WriteAllTextAsync(currentUser.jsonCredentials);
         }
 
         public async Task ReadContactList()
         {
             IFolder rootFolder = FileSystem.Current.LocalStorage;
             IFile contactFile =
-                await rootFolder.CreateFileAsync("contactList.txt", CreationCollisionOption.OpenIfExists);
+                await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
             string filecontent = await contactFile.ReadAllTextAsync();
+            currentUser = JsonConvert.DeserializeObject<User>(filecontent);
+            currentUser.jsonCredentials = filecontent;
 
 
-
-            currentUser = JsonConvert.DeserializeObject<User>(JsonConvert.DeserializeObject<dynamic>(filecontent)["body"].ToString());
-
-            for (var i = 0; i < currentUser.devices.Count; i++)
-            {
-                currentUser.devices[i] = new Models.Device()
-                {
-                    id = currentUser.devices[i].id,
-                    content = JsonConvert.DeserializeObject<Content>(currentUser.devices[i].content, new JsonSerializerSettings()
-                    {
-                        TypeNameHandling = TypeNameHandling.All
-                    })
-                };
-            }
 
             //TODO do something with the list
         }

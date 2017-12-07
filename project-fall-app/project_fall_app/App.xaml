@@ -7,15 +7,17 @@
         <ResourceDictionary>
             <Color x:Key="AppBackgroundColor">LightGray</Color>
             <Color x:Key="OutlineColor">Black</Color>
-            <Color x:Key="TextColor">Black</Color>
+            <Color x:Key="TextColor">LightGray</Color>
             <Color x:Key="TopBarColor">DarkSlateBlue</Color>
             <Color x:Key="ButtonBorderColor">Black</Color>
             <Style x:Key="BigRoundButtonStyle" TargetType="bc:CircleButton">
-                <Setter Property="WidthRequest" Value="150"/>
-                <Setter Property="HeightRequest" Value="150"/>
+                <Setter Property="WidthRequest" Value="200"/>
+                <Setter Property="HeightRequest" Value="200"/>
                 <Setter Property="BackgroundColor" Value="{StaticResource AppBackgroundColor}"/>
-                <Setter Property="TextColor" Value="{StaticResource TextColor}"/>
+                <Setter Property="TextColor" Value="Black"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
                 <Setter Property="BorderThickness" Value="5"/>
+                <Setter Property="FontSize" Value="36"/>
                 <Setter Property="BorderColor" Value="Black"/>
             </Style>
         </ResourceDictionary>

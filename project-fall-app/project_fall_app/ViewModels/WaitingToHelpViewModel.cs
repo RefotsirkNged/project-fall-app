@@ -18,11 +18,6 @@ namespace project_fall_app.ViewModels
             mscntr = Resolver.Resolve<IMessagingCenter>();
             citizenList = new List<string>()
             {
-                "Bent Bentsen",
-                "Carsten Ibsen",
-                "August Kørvell",
-                "Frederik Voldby",
-                "Kristoffer Degn"
             };
 
             CrossFirebasePushNotification.Current.OnTokenRefresh += (s, p) =>
@@ -32,7 +27,9 @@ namespace project_fall_app.ViewModels
 
             CrossFirebasePushNotification.Current.OnNotificationReceived += (s, p) =>
             {
+#if __ANDROID__
                 FirebasePushNotificationManager.NotificationContentTitleKey = "Kan du hjælpe " + citizenList.First() + "?";
+#endif
             };
             CrossFirebasePushNotification.Current.OnNotificationOpened += (s, p) =>
             {

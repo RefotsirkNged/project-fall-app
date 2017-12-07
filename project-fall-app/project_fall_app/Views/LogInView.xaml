@@ -10,7 +10,7 @@
     
   <ContentView.Content>
       <StackLayout>
-            <Entry Margin="10,100,10,10" AutomationId="UserName" Text="{Binding UsernameText}" Placeholder="Brugernavn">
+            <Entry Margin="10,100,10,10" AutomationId="UserName" Text="{Binding UsernameText}" Placeholder="Email">
                 
             </Entry>
             <Entry Margin="10,0,10,10" AutomationId="Password"  Text="{Binding PasswordText}" Placeholder="Kodeord" IsPassword="True">

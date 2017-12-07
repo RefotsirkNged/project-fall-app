@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Text;
 using System.Windows.Input;
 using Xamarin.Forms;
@@ -20,5 +22,6 @@ namespace project_fall_app.ViewModels
         }
 
         public ICommand CallForHelpCommand { protected set; get; }
+
     }
 }
