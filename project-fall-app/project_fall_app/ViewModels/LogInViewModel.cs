@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Newtonsoft.Json;
-#if __ANDROID__
-    using Org.Json;
-using Android.Widget;
-#endif
 using project_fall_app.Models;
 using PCLStorage;
 using Xamarin.Forms;
@@ -87,7 +80,6 @@ namespace project_fall_app.ViewModels
                         case HttpStatusCode.OK:
                             using (var reader = new StreamReader(response.GetResponseStream()))
                             {
-                                //responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
                                 string json = reader.ReadToEnd();
                                 json = JsonConvert.DeserializeObject<dynamic>(json)["body"].ToString();
                                 currentUser = JsonConvert.DeserializeObject<User>(json);
@@ -130,7 +122,6 @@ namespace project_fall_app.ViewModels
                 Console.WriteLine(e.Message);
                 throw;
             }
-            //return true;
         }
 
 
@@ -150,10 +141,6 @@ namespace project_fall_app.ViewModels
             string filecontent = await contactFile.ReadAllTextAsync();
             currentUser = JsonConvert.DeserializeObject<User>(filecontent);
             currentUser.jsonCredentials = filecontent;
-
-
-
-            //TODO do something with the list
         }
 
         private string usernameText;

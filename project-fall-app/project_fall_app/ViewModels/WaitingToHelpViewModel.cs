@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using Plugin.FirebasePushNotification;
 using Xamarin.Forms;
 using XLabs.Ioc;
@@ -16,9 +13,6 @@ namespace project_fall_app.ViewModels
         public WaitingToHelpViewModel()
         {
             mscntr = Resolver.Resolve<IMessagingCenter>();
-            citizenList = new List<string>()
-            {
-            };
 
             CrossFirebasePushNotification.Current.OnTokenRefresh += (s, p) =>
             {
@@ -28,7 +22,7 @@ namespace project_fall_app.ViewModels
             CrossFirebasePushNotification.Current.OnNotificationReceived += (s, p) =>
             {
 #if __ANDROID__
-                FirebasePushNotificationManager.NotificationContentTitleKey = "Kan du hjælpe " + citizenList.First() + "?";
+                FirebasePushNotificationManager.NotificationContentTitleKey = "Kan du hjælpe?";
 #endif
             };
             CrossFirebasePushNotification.Current.OnNotificationOpened += (s, p) =>

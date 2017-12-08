@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
-#if __ANDROID__ 
-    using project_fall_app.Droid;
-    using Android.Widget;
-#endif
 using project_fall_app.Models;
 using project_fall_app.Views;
 using Xamarin.Forms;
@@ -15,6 +11,7 @@ using PCLStorage;
 using System.IO;
 using System.Net;
 using Newtonsoft.Json;
+using project_fall_app.Droid;
 using project_fall_app.Tools;
 using Plugin.FirebasePushNotification.Abstractions;
 
@@ -113,9 +110,6 @@ namespace project_fall_app.ViewModels
             await userFile.DeleteAsync();
         }
 
-        
-
-
         private void SendAlarm(User user)
         {
             if (!LogInViewModel.CheckForInternetConnection())
@@ -151,7 +145,7 @@ namespace project_fall_app.ViewModels
                         }
                         break;
                     default:
-                        CrossPlatFormMethodMakeCall(user);
+                        CrossPlatFormMethod.MakeCall(user);
                         break;
                 }
             }
@@ -182,11 +176,27 @@ namespace project_fall_app.ViewModels
             });
 
 #if __ANDROID__
-            MessagingCenter.Subscribe<MainActivity>(this, "logOut", (sender) =>
+            MessagingCenter.Subscribe<Droid.MainActivity>(this, "logOut", (sender) =>
             {
                 DeleteUserCredentials();
                 shiftLogIn();
             });
+
+            MessagingCenter.Subscribe<Droid.MainActivity, string>(this, "tokenRefreshed", (sender, value) =>
+            {
+                if (value != null)
+                {
+                    Token = value;
+                }
+            });
+
+
+            MessagingCenter.Subscribe<Droid.MainActivity, FirebasePushNotificationResponseEventArgs>(this, "helpRequested",
+                (sender, data) =>
+                {
+                    //TODO do something with the data infomation
+                    shiftMessageResponse();
+                });
 #endif
 
 
@@ -203,23 +213,7 @@ namespace project_fall_app.ViewModels
                 //TODO: implement telling the server that user id XXXX can help
             });
 
-            MessagingCenter.Subscribe<MessageResponseViewModel, FirebasePushNotificationResponseEventArgs>(this, "helpRequested",
-                (sender, data) =>
-                {
-                    //TODO do something with the data infomation
-                    shiftMessageResponse();
-                });
-
-#if __ANDROID__
-
-            MessagingCenter.Subscribe<MainActivity, string>(this, "tokenRefreshed", (sender, value) =>
-            {
-                if (value != null)
-                {
-                    Token = value;
-                }
-            });
-#endif
+            
         }
 
         #endregion
