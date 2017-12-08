@@ -125,7 +125,7 @@ namespace project_fall_app.ViewModels
 
                         default:
 #if __ANDROID__
-                            Toast.MakeText(Xamarin.Forms.Forms.Context, "Ku ikke forbinde til serveren.", ToastLength.Long).Show();
+                            Toast.MakeText(Xamarin.Forms.Forms.Context, "Kunne ikke forbinde til serveren.", ToastLength.Long).Show();
 #endif
                             return false;
                     }
