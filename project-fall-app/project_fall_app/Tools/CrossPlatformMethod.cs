@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Android.Support.V7.App;
 using Android.Widget;
 using project_fall_app.Droid;
 using project_fall_app.Models;
@@ -29,6 +30,19 @@ namespace project_fall_app.Tools
                     CrossPlatFormMethod.WriteTextToScreen("Ingen fundne kontakt personer til at ringe til.");
 
             }
+#endif
+        }
+
+        public static void CreateAleartDialog(string title, string message, string button)
+        {
+#if __ANDROID__
+            new AlertDialog.Builder(Xamarin.Forms.Forms.Context)
+                .SetTitle(title)
+                .SetMessage(message)
+                .SetCancelable(true)
+                .SetNegativeButton(button, (sender, e) =>{})
+                .Create()
+                .Show();
 #endif
         }
     }

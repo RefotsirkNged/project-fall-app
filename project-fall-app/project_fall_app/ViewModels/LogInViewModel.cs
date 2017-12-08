@@ -42,8 +42,7 @@ namespace project_fall_app.ViewModels
                     }
                     else
                     {
-                        Page page = new Page();
-                        page.DisplayAlert("Login Error", "Forkert password eller brugernavn", "Ok").Start();
+                        CrossPlatFormMethod.CreateAleartDialog("Login Error", "Forkert kodeord eller email", "okay");
                     }
                 }
                 else
@@ -91,17 +90,7 @@ namespace project_fall_app.ViewModels
                                     return true;
                                 }
 
-                                foreach (var contact in currentUser.contacts)
-                                {
-                                    foreach (var device in contact.devices)
-                                    {
-                                        if (device.devicetype == "smartphone")
-                                        {
-                                            Models.Device Ndevice = JsonConvert.DeserializeObject<Models.Device>(device.content);
-                                            device.number = Ndevice.number;
-                                        }
-                                    }
-                                }
+                                currentUser.setNumber();
                             }
                             if (currentUser.id != -1)
                             {

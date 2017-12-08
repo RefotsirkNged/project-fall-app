@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace project_fall_app.Models
 {
@@ -17,7 +18,27 @@ namespace project_fall_app.Models
         public List<User> contacts;
         public string role;
         public string jsonCredentials;
-        public string Token;
+        public string token;
+
+        public void setNumber()
+        {
+            if (role == "citizen")
+            {
+                foreach (var contact in contacts)
+                {
+                    foreach (var device in contact.devices)
+                    {
+                        //TODO may need to be chance check json
+                        if (device.devicetype == "phonecalldevice" && device.content != null)
+                        {
+                            Models.Device Ndevice =
+                                JsonConvert.DeserializeObject<Models.Device>(device.content);
+                            device.number = Ndevice.number;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public class AlarmCode

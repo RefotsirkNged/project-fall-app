@@ -11,7 +11,6 @@ using PCLStorage;
 using System.IO;
 using System.Net;
 using Newtonsoft.Json;
-using project_fall_app.Droid;
 using project_fall_app.Tools;
 using Plugin.FirebasePushNotification.Abstractions;
 
@@ -38,7 +37,6 @@ namespace project_fall_app.ViewModels
             token = string.Empty;
             device = Resolver.Resolve<IDevice>();
             mscntr = Resolver.Resolve<IMessagingCenter>();
-
             InitMessages();
             VerifyUserCredentialFileExistence();
 
@@ -54,6 +52,7 @@ namespace project_fall_app.ViewModels
                 IFolder rootFolder = FileSystem.Current.LocalStorage;
                 ExistenceCheckResult fileExist = await rootFolder.CheckExistsAsync("userCredentials.txt");
 
+
                 if (fileExist == ExistenceCheckResult.FileExists)
                 {
                     IFile userFile =
@@ -63,21 +62,7 @@ namespace project_fall_app.ViewModels
                     currentUser = JsonConvert.DeserializeObject<User>(fileContent);
                     currentUser.jsonCredentials = fileContent;
 
-                    if (currentUser.role == "citizen")
-                    {
-                        foreach (var contact in currentUser.contacts)
-                        {
-                            foreach (var device in contact.devices)
-                            {
-                                if (device.devicetype == "smartphone")
-                                {
-                                    Models.Device Ndevice =
-                                        JsonConvert.DeserializeObject<Models.Device>(device.content);
-                                    device.number = Ndevice.number;
-                                }
-                            }
-                        }
-                    }
+                    currentUser.setNumber();
 
                     Xamarin.Forms.Device.BeginInvokeOnMainThread(() =>
                     {
@@ -122,7 +107,7 @@ namespace project_fall_app.ViewModels
             HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create(url);
             
             request.Method = "POST";
-            request.Headers.Add("Token",currentUser.Token);
+            request.Headers.Add("token",currentUser.token);
 
             using (var response = request.GetResponse())
             {

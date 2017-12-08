@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interface\IWriteToScreen.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interface\IMakeCall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ResponseObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tools\CrossPlatformMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\BaseViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\FallResponseViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\HelpViewModel.cs" />
@@ -50,9 +51,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Tools\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Views\HelpView.xaml">
