@@ -17,9 +17,8 @@ using Xamarin.Forms;
 using XLabs.Ioc;
 using XLabs.Platform.Device;
 using XLabs.Platform.Services;
-using PCLStorage;
-using System.IO;
 using System.Net.NetworkInformation;
+using project_fall_app.Tools;
 
 
 namespace project_fall_app.ViewModels
@@ -55,11 +54,7 @@ namespace project_fall_app.ViewModels
                     }
                 }
                 else
-                {
-#if __ANDROID__
-                    Toast.MakeText(Xamarin.Forms.Forms.Context, "Ingen forbindelse til internettet.", ToastLength.Long).Show();
-#endif
-                }
+                    CrossPlatFormMethod.WriteTextToScreen("Ingen forbindelse til internettet.");
             });
         }
 
@@ -97,7 +92,6 @@ namespace project_fall_app.ViewModels
                                 json = JsonConvert.DeserializeObject<dynamic>(json)["body"].ToString();
                                 currentUser = JsonConvert.DeserializeObject<User>(json);
                                 currentUser.jsonCredentials = json;
-                                currentUser.password = passwordText;
 
                                 if (currentUser.contacts == null && currentUser.id != -1)
                                 {
@@ -125,9 +119,7 @@ namespace project_fall_app.ViewModels
                             break;
 
                         default:
-#if __ANDROID__
-                            Toast.MakeText(Xamarin.Forms.Forms.Context, "Kunne ikke forbinde til serveren.", ToastLength.Long).Show();
-#endif
+                            CrossPlatFormMethod.WriteTextToScreen("Kunne ikke forbinde til serveren.");
                             return false;
                     }
                 }
@@ -147,7 +139,7 @@ namespace project_fall_app.ViewModels
             IFolder rootFolder = FileSystem.Current.LocalStorage;
             IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.ReplaceExisting);
             
-            await userFile.WriteAllTextAsync(currentUser.password + "\n" + currentUser.jsonCredentials);
+            await userFile.WriteAllTextAsync(currentUser.jsonCredentials);
         }
 
         public async Task ReadContactList()
@@ -156,10 +148,8 @@ namespace project_fall_app.ViewModels
             IFile contactFile =
                 await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
             string filecontent = await contactFile.ReadAllTextAsync();
-            string[] fileSplit = filecontent.Split(new[] {'\n'}, 1);
-            currentUser = JsonConvert.DeserializeObject<User>(fileSplit[1]);
+            currentUser = JsonConvert.DeserializeObject<User>(filecontent);
             currentUser.jsonCredentials = filecontent;
-            currentUser.password
 
 
 

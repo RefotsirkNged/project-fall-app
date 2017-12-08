@@ -72,7 +72,12 @@ namespace project_fall_app.Droid
                     System.Diagnostics.Debug.WriteLine("recieved" + p.Data);
 		        };
 
-            }
+		        CrossFirebasePushNotification.Current.OnNotificationOpened += (s, p) =>
+		        {
+                    mscntr.Send(this, "helpRequested", p);
+		        };
+
+		    }
             
 
 

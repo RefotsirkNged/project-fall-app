@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 #if __ANDROID__ 
-    using Android.Content;
     using project_fall_app.Droid;
-    using Android.App;
     using Android.Widget;
 #endif
 using project_fall_app.Models;
 using project_fall_app.Views;
-using Plugin.FirebasePushNotification;
 using Xamarin.Forms;
 using XLabs.Ioc;
 using XLabs.Platform.Device;
@@ -20,6 +15,8 @@ using PCLStorage;
 using System.IO;
 using System.Net;
 using Newtonsoft.Json;
+using project_fall_app.Tools;
+using Plugin.FirebasePushNotification.Abstractions;
 
 namespace project_fall_app.ViewModels
 {
@@ -66,10 +63,8 @@ namespace project_fall_app.ViewModels
                         await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
                     String fileContent = await userFile.ReadAllTextAsync();
 
-                    string[] fileSplit = filecontent.Split(new[] { '\n' }, 1);
-                    currentUser = JsonConvert.DeserializeObject<User>(fileSplit[1]);
-                    currentUser.jsonCredentials = filecontent;
-                    currentUser.password = fileSplit[0]
+                    currentUser = JsonConvert.DeserializeObject<User>(fileContent);
+                    currentUser.jsonCredentials = fileContent;
 
                     if (currentUser.role == "citizen")
                     {
@@ -118,20 +113,14 @@ namespace project_fall_app.ViewModels
             await userFile.DeleteAsync();
         }
 
+        
+
+
         private void SendAlarm(User user)
         {
             if (!LogInViewModel.CheckForInternetConnection())
             {
-                if (currentUser.contacts.Count >= 1)
-                {
-#if __ANDROID__
-                    PhoneCallDroid call = new PhoneCallDroid();
-                    if (user.contacts[0].devices.Count > 0)
-                        call.MakeQuickCall(user.contacts[0].devices[0].number);
-                    else
-                        Toast.MakeText(Xamarin.Forms.Forms.Context, "Ingen fundne kontakt personer til at ringe til.", ToastLength.Long).Show();
-#endif
-                }
+                CrossPlatFormMethod.MakeCall(user);
                 return;
             }
 
@@ -139,6 +128,7 @@ namespace project_fall_app.ViewModels
             HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create(url);
             
             request.Method = "POST";
+            request.Headers.Add("Token",currentUser.Token);
 
             using (var response = request.GetResponse())
             {
@@ -154,28 +144,14 @@ namespace project_fall_app.ViewModels
 
                             if (code["status"] == -1)
                             {
-#if __ANDROID__
-                                PhoneCallDroid call = new PhoneCallDroid();
-                                call.MakeQuickCall(currentUser.contacts[0].number);
-#endif
+                                CrossPlatFormMethod.MakeCall(user);
                             }
                             else
-                            {
-#if __ANDROID__
-                                Toast.MakeText(Xamarin.Forms.Forms.Context, "Alarm blev successfuldt sendt.", ToastLength.Long).Show();
-#endif
-                            }
+                                CrossPlatFormMethod.WriteTextToScreen("Alarm blev successfuldt sendt.");
                         }
                         break;
                     default:
-#if __ANDROID__
-                        if (currentUser.contacts.Count >= 1)
-                        {
-                            PhoneCallDroid call = new PhoneCallDroid();
-                            call.MakeQuickCall(currentUser.contacts[0].number);
-                            
-                        }
-#endif
+                        CrossPlatFormMethodMakeCall(user);
                         break;
                 }
             }
@@ -227,8 +203,12 @@ namespace project_fall_app.ViewModels
                 //TODO: implement telling the server that user id XXXX can help
             });
 
-            MessagingCenter.Subscribe<MessageResponseViewModel>(this, "helpRequested",
-                (sender) => { shiftMessageResponse(); });
+            MessagingCenter.Subscribe<MessageResponseViewModel, FirebasePushNotificationResponseEventArgs>(this, "helpRequested",
+                (sender, data) =>
+                {
+                    //TODO do something with the data infomation
+                    shiftMessageResponse();
+                });
 
 #if __ANDROID__
 

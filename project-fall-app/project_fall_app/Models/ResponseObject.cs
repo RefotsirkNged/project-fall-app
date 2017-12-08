@@ -17,6 +17,7 @@ namespace project_fall_app.Models
         public List<User> contacts;
         public string role;
         public string jsonCredentials;
+        public string Token;
     }
 
     public class AlarmCode
