@@ -66,8 +66,10 @@ namespace project_fall_app.ViewModels
                         await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
                     String fileContent = await userFile.ReadAllTextAsync();
 
-                    currentUser = JsonConvert.DeserializeObject<User>(fileContent);
-                    currentUser.jsonCredentials = fileContent;
+                    string[] fileSplit = filecontent.Split(new[] { '\n' }, 1);
+                    currentUser = JsonConvert.DeserializeObject<User>(fileSplit[1]);
+                    currentUser.jsonCredentials = filecontent;
+                    currentUser.password = fileSplit[0]
 
                     if (currentUser.role == "citizen")
                     {
@@ -108,26 +110,6 @@ namespace project_fall_app.ViewModels
                 throw e;
             }
         }
-        private bool CheckServerConnection()
-        {
-            //TODO:perform a check of whether or not the server is available
-            HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create("https://google.dk");
-            request.Method = "GET";
-            //request.Headers.Add("email", UsernameText);
-            //request.Headers.Add("password", PasswordText);
-
-            using (var response = request.GetResponse())
-            {
-                using (var reader = new StreamReader(response.GetResponseStream()))
-                {
-                    //responseObject = JsonConvert.DeserializeObject<ResponseObject>(reader.ReadToEnd());
-                }
-            }
-
-            
-            return true;
-        }
-
 
         private async Task DeleteUserCredentials()
         {
@@ -144,27 +126,46 @@ namespace project_fall_app.ViewModels
                 {
 #if __ANDROID__
                     PhoneCallDroid call = new PhoneCallDroid();
-                    call.MakeQuickCall(user.contacts[0].devices[0].number);
+                    if (user.contacts[0].devices.Count > 0)
+                        call.MakeQuickCall(user.contacts[0].devices[0].number);
+                    else
+                        Toast.MakeText(Xamarin.Forms.Forms.Context, "Ingen fundne kontakt personer til at ringe til.", ToastLength.Long).Show();
 #endif
                 }
                 return;
             }
 
-            string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/alarm";
+            string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/citizen/" + user.id + "/alarm";
             HttpWebRequest request = (HttpWebRequest) HttpWebRequest.Create(url);
             
             request.Method = "POST";
-            request.Headers.Add("citizen", user.jsonCredentials);
-            //request.Headers.Add("location", location);
 
             using (var response = request.GetResponse())
             {
                 switch (((HttpWebResponse)response).StatusCode)
                 {
                     case HttpStatusCode.OK:
+                        using (var reader = new StreamReader(response.GetResponseStream()))
+                        {
+                            string json = reader.ReadToEnd();
+
+                            json = JsonConvert.DeserializeObject<dynamic>(json)["body"].ToString();
+                            dynamic code = JsonConvert.DeserializeObject<dynamic>(json);
+
+                            if (code["status"] == -1)
+                            {
 #if __ANDROID__
-                        Toast.MakeText(Xamarin.Forms.Forms.Context, "Alarm blev successfuldt sendt.", ToastLength.Long);
+                                PhoneCallDroid call = new PhoneCallDroid();
+                                call.MakeQuickCall(currentUser.contacts[0].number);
 #endif
+                            }
+                            else
+                            {
+#if __ANDROID__
+                                Toast.MakeText(Xamarin.Forms.Forms.Context, "Alarm blev successfuldt sendt.", ToastLength.Long).Show();
+#endif
+                            }
+                        }
                         break;
                     default:
 #if __ANDROID__

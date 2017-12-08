@@ -97,6 +97,7 @@ namespace project_fall_app.ViewModels
                                 json = JsonConvert.DeserializeObject<dynamic>(json)["body"].ToString();
                                 currentUser = JsonConvert.DeserializeObject<User>(json);
                                 currentUser.jsonCredentials = json;
+                                currentUser.password = passwordText;
 
                                 if (currentUser.contacts == null && currentUser.id != -1)
                                 {
@@ -145,8 +146,8 @@ namespace project_fall_app.ViewModels
         {
             IFolder rootFolder = FileSystem.Current.LocalStorage;
             IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.ReplaceExisting);
-
-            await userFile.WriteAllTextAsync(currentUser.jsonCredentials);
+            
+            await userFile.WriteAllTextAsync(currentUser.password + "\n" + currentUser.jsonCredentials);
         }
 
         public async Task ReadContactList()
@@ -155,8 +156,10 @@ namespace project_fall_app.ViewModels
             IFile contactFile =
                 await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
             string filecontent = await contactFile.ReadAllTextAsync();
-            currentUser = JsonConvert.DeserializeObject<User>(filecontent);
+            string[] fileSplit = filecontent.Split(new[] {'\n'}, 1);
+            currentUser = JsonConvert.DeserializeObject<User>(fileSplit[1]);
             currentUser.jsonCredentials = filecontent;
+            currentUser.password
 
 
 

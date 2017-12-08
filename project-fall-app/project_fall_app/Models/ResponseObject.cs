@@ -19,6 +19,21 @@ namespace project_fall_app.Models
         public string jsonCredentials;
     }
 
+    public class AlarmCode
+    {
+        public string responder;
+        public string status;
+        public string activatedBy;
+        public string name;
+        public string address;
+        public string id;
+        public string city;
+        public string postnr;
+        public string email;
+        public string devices;
+        public string role;
+    }
+
     public class Device
     {
         public string id;
