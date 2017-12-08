@@ -51,7 +51,7 @@ namespace project_fall_app.ViewModels
                     else
                     {
                         Page page = new Page();
-                        page.DisplayAlert("Login Error", "Forkert password eller bruger navn", "okay").Start();
+                        page.DisplayAlert("Login Error", "Forkert password eller brugernavn", "Ok").Start();
                     }
                 }
                 else
