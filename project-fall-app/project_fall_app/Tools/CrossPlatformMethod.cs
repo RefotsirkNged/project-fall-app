@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿#if __ANDROID__
 using Android.Support.V7.App;
 using Android.Widget;
 using project_fall_app.Droid;
+#endif
 using project_fall_app.Models;
 
 namespace project_fall_app.Tools
@@ -25,7 +24,7 @@ namespace project_fall_app.Tools
             {
                 PhoneCallDroid call = new PhoneCallDroid();
                 if (user.contacts[0].devices.Count > 0)
-                    call.MakeQuickCall(user.contacts[0].devices[0].number);
+                    call.MakeQuickCall(user.contacts[0].devices[0].phone_number);
                 else
                     CrossPlatFormMethod.WriteTextToScreen("Ingen fundne kontakt personer til at ringe til.");
 

@@ -14,7 +14,6 @@ namespace project_fall_app.Models
         public string city;
         public string address;
         public string postnr;
-        public string number;
         public List<User> contacts;
         public string role;
         public string jsonCredentials;
@@ -28,12 +27,11 @@ namespace project_fall_app.Models
                 {
                     foreach (var device in contact.devices)
                     {
-                        //TODO may need to be chance check json
                         if (device.devicetype == "phonecalldevice" && device.content != null)
                         {
                             Models.Device Ndevice =
                                 JsonConvert.DeserializeObject<Models.Device>(device.content);
-                            device.number = Ndevice.number;
+                            device.phone_number = Ndevice.phone_number;
                         }
                     }
                 }
@@ -61,11 +59,11 @@ namespace project_fall_app.Models
         public string id;
         public string devicetype;
         public string content;
-        public string number;
+        public string phone_number;
     }
 
     public class Content
     {
-        public string number;
+        public string phone_number;
     }
 }
