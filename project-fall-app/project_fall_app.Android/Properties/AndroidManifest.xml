@@ -12,8 +12,11 @@
   
   <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true"/>
 	<application android:label="project_fall_app.Android">
-		<activity android:name=".MainActivity" android:screenOrientation="portrait" />
-		<receiver android:name="com.google.firebase.iid.FirebaseInstanceIdInternalReceiver" android:exported="false" />
+		<activity android:name=".MainActivity" 
+              android:screenOrientation="portrait" 
+              android:alwaysRetainTaskState="true"
+		          android:exported="true"/>
+		<receiver android:name="com.google.firebase.iid.FirebaseInstanceIdInternalReceiver" android:exported="true" />
 		<receiver android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver" android:exported="true" android:permission="com.google.android.c2dm.permission.SEND">
 			<intent-filter>
 				<action android:name="com.google.android.c2dm.intent.RECEIVE" />

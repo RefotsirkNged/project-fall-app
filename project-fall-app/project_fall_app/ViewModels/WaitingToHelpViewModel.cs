@@ -1,4 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Java.Lang;
+using Newtonsoft.Json;
+using project_fall_app.Models;
+using PCLStorage;
 using Plugin.FirebasePushNotification;
 using Xamarin.Forms;
 using XLabs.Ioc;
@@ -9,26 +14,39 @@ namespace project_fall_app.ViewModels
     {
         private List<string> citizenList;
         private IMessagingCenter mscntr;
+        private static bool firstTime;
 
         public WaitingToHelpViewModel()
         {
             mscntr = Resolver.Resolve<IMessagingCenter>();
+            if (!firstTime)
+                mscntr.Send<WaitingToHelpViewModel>(this, "initFirebase");
+            firstTime = true;
+            VerifyAlarmFileExistence();
 
-            CrossFirebasePushNotification.Current.OnTokenRefresh += (s, p) =>
-            {
-                System.Diagnostics.Debug.WriteLine($"TOKEN: {p.Token}"); //TODO: send userid og token til server
-            };
+        }
 
-            CrossFirebasePushNotification.Current.OnNotificationReceived += (s, p) =>
+        private async Task VerifyAlarmFileExistence()
+        {
+            try
             {
-#if __ANDROID__
-                FirebasePushNotificationManager.NotificationContentTitleKey = "Kan du hjælpe?";
-#endif
-            };
-            CrossFirebasePushNotification.Current.OnNotificationOpened += (s, p) =>
+                IFolder rootFolder = FileSystem.Current.LocalStorage;
+                ExistenceCheckResult fileExist = await rootFolder.CheckExistsAsync("alarm.txt");
+
+
+                if (fileExist == ExistenceCheckResult.FileExists)
+                {
+                    IFile userFile =
+                        await rootFolder.CreateFileAsync("alarm.txt", CreationCollisionOption.OpenIfExists);
+                    string fileContent = await userFile.ReadAllTextAsync();
+                    await userFile.DeleteAsync();
+                    mscntr.Send(this, "helpRequested", fileContent);
+                }
+            }
+            catch (Exception e)
             {
-                mscntr.Send(this, "helpRequested");
-            };
+                throw e;
+            }
         }
 
         public List<string> CitizenList

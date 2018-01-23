@@ -84,23 +84,44 @@ namespace project_fall_app.ViewModels
                                 currentUser = JsonConvert.DeserializeObject<User>(json);
                                 currentUser.jsonCredentials = json;
 
-                                if (currentUser.contacts == null && currentUser.id != -1)
-                                {
-                                    CreateUserCredentialsFile(currentUser);
-                                    return true;
-                                }
-
-                                currentUser.setNumber();
+                                if(currentUser.contacts != null)
+                                    currentUser.setNumber();
                             }
-                            if (currentUser.id != -1)
+                            break;
+
+                        default:
+                            CrossPlatFormMethod.WriteTextToScreen("Kunne ikke forbinde til serveren.");
+                            return false;
+                    }
+                }
+                if(currentUser.role == "citizen")
+                    url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/citizen/" + currentUser.id +
+                      "/device";
+                else if(currentUser.role == "contact")
+                    url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/contact/" + currentUser.id +
+                          "/device";
+                request = (HttpWebRequest)HttpWebRequest.Create(url);
+                request.Method = "POST";
+                request.Headers.Add("token", currentUser.token);
+                request.Headers.Add("device", "{'token': 'temp_token','arn':'', 'devicetype': 'appdevice', 'id': -1}");
+
+
+                using (var response = request.GetResponse())
+                {
+                    switch (((HttpWebResponse)response).StatusCode)
+                    {
+                        case HttpStatusCode.OK:
+                            using (var reader = new StreamReader(response.GetResponseStream()))
                             {
+                                string content = reader.ReadToEnd();
+                                currentUser.currentDevice = JsonConvert.DeserializeObject<dynamic>(content)["body"].ToString() ;
                                 CreateUserCredentialsFile(currentUser);
                                 return true;
                             }
                             break;
 
                         default:
-                            CrossPlatFormMethod.WriteTextToScreen("Kunne ikke forbinde til serveren.");
+                            CrossPlatFormMethod.WriteTextToScreen("fejl ved log in");
                             return false;
                     }
                 }
@@ -119,7 +140,7 @@ namespace project_fall_app.ViewModels
             IFolder rootFolder = FileSystem.Current.LocalStorage;
             IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.ReplaceExisting);
             
-            await userFile.WriteAllTextAsync(currentUser.jsonCredentials);
+            await userFile.WriteAllTextAsync(currentUser.jsonCredentials + "\n" + currentUser.currentDevice);
         }
 
         public async Task ReadContactList()
@@ -127,7 +148,9 @@ namespace project_fall_app.ViewModels
             IFolder rootFolder = FileSystem.Current.LocalStorage;
             IFile contactFile =
                 await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
+
             string filecontent = await contactFile.ReadAllTextAsync();
+            string[] split = filecontent.Split('\n');
             currentUser = JsonConvert.DeserializeObject<User>(filecontent);
             currentUser.jsonCredentials = filecontent;
         }

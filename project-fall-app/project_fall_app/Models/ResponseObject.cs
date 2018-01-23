@@ -11,6 +11,7 @@ namespace project_fall_app.Models
         public string name;
         public string email;
         public List<Device> devices;
+        public string currentDevice;
         public string city;
         public string address;
         public string postnr;
@@ -65,5 +66,13 @@ namespace project_fall_app.Models
     public class Content
     {
         public string phone_number;
+    }
+
+    public class CurrentDevice
+    {
+        public string id;
+        public string devicetype;
+        public string token;
+        public string arn;
     }
 }

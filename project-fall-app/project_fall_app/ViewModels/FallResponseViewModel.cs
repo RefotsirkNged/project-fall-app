@@ -26,6 +26,7 @@ namespace project_fall_app.ViewModels
             {
 #if __ANDROID__
                 liveCounter.Cancel();
+                liveCounter.Dispose();
 #endif
                 mscntr.Send<FallResponseViewModel>(this, "callForHelpConfirmed");
             });
@@ -33,6 +34,7 @@ namespace project_fall_app.ViewModels
             {
 #if __ANDROID__
                 liveCounter.Cancel();
+                liveCounter.Dispose();
 #endif
                 mscntr.Send<FallResponseViewModel>(this, "callForHelpAborted");
             });
@@ -53,6 +55,9 @@ namespace project_fall_app.ViewModels
 
         public void FinishCountDown()
         {
+#if __ANDROID__
+            liveCounter.Dispose();
+#endif
             mscntr.Send<FallResponseViewModel>(this, "callForHelpConfirmed");
         }
     }

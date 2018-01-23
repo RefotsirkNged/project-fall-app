@@ -10,15 +10,17 @@ using View = Xamarin.Forms.View;
 using PCLStorage;
 using System.IO;
 using System.Net;
+#if __ANDROID__
+using Android.Support.V7.App;
+#endif
 using Newtonsoft.Json;
 using project_fall_app.Tools;
-using Plugin.FirebasePushNotification.Abstractions;
 
 namespace project_fall_app.ViewModels
 {
     class MainPageViewModel : BaseViewModel
     {
-        #region Fields
+#region Fields
 
         private int topBarHeight;
         private View pageContent;
@@ -29,8 +31,10 @@ namespace project_fall_app.ViewModels
 
         private IDevice device;
         private IMessagingCenter mscntr;
+        private static bool firstTime;
+        private string data;
 
-        #endregion
+#endregion
 
         public MainPageViewModel()
         {
@@ -43,6 +47,21 @@ namespace project_fall_app.ViewModels
             Title = "Falddetektions-app";
             TopBarHeight = 50;
             TopBarLabelWidth = (int) (device.Display.Width * 0.9f);
+#if __ANDROID__
+            InfoButtonCommand = new Command(() =>
+            {
+
+                new AlertDialog.Builder(Xamarin.Forms.Forms.Context)
+                    .SetTitle("Log ud")
+                    .SetMessage("vil du logge ud?")
+                    .SetCancelable(true)
+                    .SetPositiveButton("Log ud", (e, sender) =>
+                    { mscntr.Send<MainPageViewModel>(this, "logOut");})
+                    .SetNegativeButton("Cancel", (sender, e) => { })
+                    .Create()
+                    .Show();
+            });
+#endif
         }
 
         private async Task VerifyUserCredentialFileExistence()
@@ -58,9 +77,12 @@ namespace project_fall_app.ViewModels
                     IFile userFile =
                         await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
                     String fileContent = await userFile.ReadAllTextAsync();
+                    string filecontent = await userFile.ReadAllTextAsync();
+                    string[] split = filecontent.Split('\n');
 
-                    currentUser = JsonConvert.DeserializeObject<User>(fileContent);
-                    currentUser.jsonCredentials = fileContent;
+                    currentUser = JsonConvert.DeserializeObject<User>(split[0]);
+                    currentUser.jsonCredentials = split[0];
+                    currentUser.currentDevice = split[1];
 
                     currentUser.setNumber();
 
@@ -90,6 +112,35 @@ namespace project_fall_app.ViewModels
 
         private async Task DeleteUserCredentials()
         {
+            string url;
+            if (currentUser.role == "citizen")
+                url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/citizen/" + currentUser.id +
+                             "/device";
+            else
+                url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/contact/" + currentUser.id +
+                    "/device";
+            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+
+            request.Method = "DELETE";
+            request.Headers.Add("token", currentUser.token);
+            request.Headers.Add("device", currentUser.currentDevice);
+
+            using (var response = request.GetResponse())
+            {
+                switch (((HttpWebResponse)response).StatusCode)
+                {
+                    case HttpStatusCode.OK:
+                        using (var reader = new StreamReader(response.GetResponseStream()))
+                        {
+                         
+                        }
+                        break;
+                    default:
+                        CrossPlatFormMethod.WriteTextToScreen("Fejl i log ud");
+                        return;
+                }
+            }
+
             IFolder rootFolder = FileSystem.Current.LocalStorage;
             IFile userFile = await rootFolder.CreateFileAsync("userCredentials.txt", CreationCollisionOption.OpenIfExists);
             await userFile.DeleteAsync();
@@ -136,7 +187,7 @@ namespace project_fall_app.ViewModels
             }
         }
 
-        #region MessageCenter
+#region MessageCenter
 
         private void InitMessages()
         {
@@ -161,8 +212,9 @@ namespace project_fall_app.ViewModels
             });
 
 #if __ANDROID__
-            MessagingCenter.Subscribe<Droid.MainActivity>(this, "logOut", (sender) =>
+            MessagingCenter.Subscribe<MainPageViewModel>(this, "logOut", (sender) =>
             {
+
                 DeleteUserCredentials();
                 shiftLogIn();
             });
@@ -171,15 +223,55 @@ namespace project_fall_app.ViewModels
             {
                 if (value != null)
                 {
-                    Token = value;
+                    try
+                    {
+                        string url = "";
+                        if (currentUser.role == "citizen")
+                            url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/citizen/" + currentUser.id +
+                                  "/device";
+                        else if (currentUser.role == "contact")
+                            url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/contact/" + currentUser.id +
+                                  "/device";
+                        HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+                        request.Method = "PUT";
+
+                        request.Headers.Add("token", currentUser.token);
+                        CurrentDevice currentDevice =
+                            JsonConvert.DeserializeObject<CurrentDevice>(currentUser.currentDevice);
+                        currentDevice.token = value;
+                        string json = JsonConvert.SerializeObject(currentDevice).ToString();
+                        request.Headers.Add("device", "{'token': '"+currentDevice.token+"','arn':'', 'devicetype': '"+currentDevice.devicetype+"', 'id': "+currentDevice.id+"}");
+
+                        using (var response = request.GetResponse())
+                        {
+                            switch (((HttpWebResponse)response).StatusCode)
+                            {
+                                case HttpStatusCode.OK:
+                                    using (var reader = new StreamReader(response.GetResponseStream()))
+                                    {
+
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                    
+
                 }
             });
 
 
-            MessagingCenter.Subscribe<Droid.MainActivity, FirebasePushNotificationResponseEventArgs>(this, "helpRequested",
+            MessagingCenter.Subscribe<WaitingToHelpViewModel,string>(this, "helpRequested",
                 (sender, data) =>
                 {
-                    //TODO do something with the data infomation
+                    this.data = data;
                     shiftMessageResponse();
                 });
 #endif
@@ -191,20 +283,84 @@ namespace project_fall_app.ViewModels
                 shiftHelp();
             });
 
-            MessagingCenter.Subscribe<FallResponseViewModel>(this, "callForHelpAborted", (sender) => { shiftHelp(); });
+            MessagingCenter.Subscribe<FallResponseViewModel>(this, "callForHelpAborted", (sender) =>
+            {
+                shiftHelp();
+            });
 
             MessagingCenter.Subscribe<MessageResponseViewModel>(this, "canHelp", (sender) =>
             {
-                //TODO: implement telling the server that user id XXXX can help
+                string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/citizen/" + currentUser.id +
+                             "/alarm";
+                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+                request.Method = "PUT";
+                request.Headers.Add("alarm", data.Replace("\"responder\": null", "\"responder\": " + currentUser.jsonCredentials ).Replace("\"", "'"));
+                request.Headers.Add("token", currentUser.token);
+
+                using (var response = request.GetResponse())
+                {
+                    switch (((HttpWebResponse)response).StatusCode)
+                    {
+                        case HttpStatusCode.OK:
+                            using (var reader = new StreamReader(response.GetResponseStream()))
+                            {
+                                string json = reader.ReadToEnd();
+                            }
+                            break;
+
+                        default:
+                            CrossPlatFormMethod.WriteTextToScreen("Kunne ikke forbinde til serveren.");
+                            break;
+                    }
+                }
+#if __ANDROID__
+                var dataDyn = JsonConvert.DeserializeObject<dynamic>(data);
+                
+                new Android.Support.V7.App.AlertDialog.Builder(Xamarin.Forms.Forms.Context)
+                    .SetTitle("Infomation Om ")
+                    .SetMessage("Navn: " + dataDyn.activatedby.name + "\nAddresse: " + dataDyn.activatedby.address)
+                    .SetCancelable(true)
+                    .Create()
+                    .Show();
+#endif
+                shiftWaitingToHelp();
             });
 
-            
+            MessagingCenter.Subscribe<MessageResponseViewModel>(this, "cannotHelp", (sender) =>
+            {
+                string url = "https://prbw36cvje.execute-api.us-east-1.amazonaws.com/dev/citizen/" + currentUser.id +
+                             "/alarm";
+                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+                request.Method = "PUT";
+                request.Headers.Add("alarm", data.Replace("\"","'"));
+                request.Headers.Add("token", currentUser.token);
+
+                using (var response = request.GetResponse())
+                {
+                    switch (((HttpWebResponse)response).StatusCode)
+                    {
+                        case HttpStatusCode.OK:
+                            using (var reader = new StreamReader(response.GetResponseStream()))
+                            {
+                                string json = reader.ReadToEnd();
+                            }
+                            break;
+
+                        default:
+                            CrossPlatFormMethod.WriteTextToScreen("Kunne ikke forbinde til serveren.");
+                            break;
+                    }
+                }
+                shiftWaitingToHelp();
+            });
+
+
         }
 
-        #endregion
+#endregion
 
 
-        #region page-shift
+#region page-shift
 
         private void shiftFallResponse()
         {
@@ -220,8 +376,9 @@ namespace project_fall_app.ViewModels
 
         private void shiftMessageResponse()
         {
-            Title = "Kan du hjælpe?";
-            PageContent = new MessageResponseView();
+            var dataDyn = JsonConvert.DeserializeObject<dynamic>(data);
+            Title = "Kan du hjælpe " + dataDyn.activatedby.name + "?";
+            PageContent = new MessageResponseView();    
         }
 
         private void shiftHelp()
@@ -236,10 +393,10 @@ namespace project_fall_app.ViewModels
             PageContent = new WaitingToHelpView();
         }
 
-        #endregion
+#endregion
 
 
-        #region gettersetter/commands
+#region gettersetter/commands
 
         public View PageContent
         {
@@ -267,6 +424,6 @@ namespace project_fall_app.ViewModels
 
         public ICommand InfoButtonCommand { protected set; get; }
 
-        #endregion
+#endregion
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -13,7 +13,11 @@ using XLabs.Ioc;
 using XLabs.Platform.Device;
 using XLabs.Platform.Services;
 using Android.Gms.Common;
+using project_fall_app.Models;
+using project_fall_app.ViewModels;
+using PCLStorage;
 using Plugin.FirebasePushNotification;
+using Plugin.FirebasePushNotification.Abstractions;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 
 namespace project_fall_app.Droid
@@ -21,7 +25,10 @@ namespace project_fall_app.Droid
 	[Activity (Label = "project_fall_app", Icon = "@drawable/icon", Theme="@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
 	public class MainActivity : XFormsApplicationDroid //, global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
 	{
-	    private IMessagingCenter mscntr;
+	    private static bool firstTime;
+	    private static bool firstTimeNotifi;
+
+        private IMessagingCenter mscntr;
 
 
         protected override void OnCreate (Bundle bundle)
@@ -42,48 +49,38 @@ namespace project_fall_app.Droid
 		        Resolver.SetResolver(container.GetResolver());
             }
             LoadApplication (new project_fall_app.App ());
-		    this.Window.AddFlags(WindowManagerFlags.Fullscreen);
+		    mscntr = Resolver.Resolve<IMessagingCenter>();
+            this.Window.AddFlags(WindowManagerFlags.Fullscreen);
 
 		    Intent intent = new Intent(this, typeof(FallService));
 		    //StartService(intent);
 
             //Notification initialization and debugging stuff
 
-            FirebasePushNotificationManager.Initialize(this, true);
-
-                //FirebasePushNotificationManager.Initialize(this, false);
-            FirebasePushNotificationManager.ProcessIntent(Intent);
-
-
-
-		    if (IsPlayServicesAvailable())
-		    {
-		        FirebasePushNotificationManager.IconResource = Resources.GetIdentifier("ic_info_outline_black_24dp", "drawable", PackageName);
-
-                CrossFirebasePushNotification.Current.OnTokenRefresh += (s, p) =>
-                {
-                    mscntr = Resolver.Resolve<IMessagingCenter>();
-                    mscntr.Send(this, "tokenRefreshed", p.Token);
-                    System.Diagnostics.Debug.WriteLine($"TOKEN: {p.Token}");
-		        };
-
-		        CrossFirebasePushNotification.Current.OnNotificationReceived += (s, p) =>
-		        {
-                    System.Diagnostics.Debug.WriteLine("recieved" + p.Data);
-		        };
-
-		        CrossFirebasePushNotification.Current.OnNotificationOpened += (s, p) =>
-		        {
-                    mscntr.Send(this, "helpRequested", p);
-		        };
-
-		    }
             
 
+		    MessagingCenter.Subscribe<WaitingToHelpViewModel>(this, "initFirebase", (sender) =>
+		    {
+                InitFirebase();
+            });
 
-		}
+            MessagingCenter.Subscribe<HelpViewModel>(this, "initFirebase", (sender) =>
+            {
+                InitFirebase();
+            });
 
-	    public bool IsPlayServicesAvailable()
+
+        }
+
+	    private async Task CreateAlarmFile(string data)
+	    {
+	        IFolder rootFolder = FileSystem.Current.LocalStorage;
+	        IFile userFile = await rootFolder.CreateFileAsync("alarm.txt", CreationCollisionOption.ReplaceExisting);
+
+	        await userFile.WriteAllTextAsync(data);
+	    }
+
+        public bool IsPlayServicesAvailable()
 	    {
 	        int resultCode = GoogleApiAvailability.Instance.IsGooglePlayServicesAvailable(this);
 	        if (resultCode != ConnectionResult.Success)
@@ -104,25 +101,39 @@ namespace project_fall_app.Droid
 	        }
 	    }
 
-	    public override void OnBackPressed()
+	    private void InitFirebase()
 	    {
-	        new AlertDialog.Builder(Xamarin.Forms.Forms.Context )
-                .SetTitle("Choice some action")
-                .SetCancelable(true)
-                .SetNegativeButton("Log Out", LogOut)
-                .SetPositiveButton("Close App", CloseApp)
-                .Create()
-                .Show();
-	    }
+	        FirebasePushNotificationManager.Initialize(this, true);
 
-	    private void CloseApp(object sender, DialogClickEventArgs e)
-	    {
-	        Finish();
-	    }
-	    private void LogOut(object sender, DialogClickEventArgs e)
-	    {
-	        mscntr.Send(this, "logOut");
-	    }
+	        //FirebasePushNotificationManager.Initialize(this, false);
+	        FirebasePushNotificationManager.ProcessIntent(Intent);
+
+	        if (IsPlayServicesAvailable())
+	        {
+	            FirebasePushNotificationManager.IconResource = Resources.GetIdentifier("testimg", "drawable", PackageName);
+	            FirebasePushNotificationManager.NotificationContentTextKey = "Title";
+
+	            CrossFirebasePushNotification.Current.OnTokenRefresh += (s, p) =>
+	            {
+	                mscntr.Send(this, "tokenRefreshed", p.Token);
+	            };
+
+	            CrossFirebasePushNotification.Current.OnNotificationReceived += (s, p) =>
+	            {
+
+	                string outPut;
+	                p.Data.TryGetValue("default", out outPut);
+
+	                CreateAlarmFile(outPut);
+	            };
+
+	            CrossFirebasePushNotification.Current.OnNotificationOpened += (s, p) =>
+	            {
+
+	            };
+	        }
+        }
     }
+
 }
 
